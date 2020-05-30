@@ -19,7 +19,7 @@ and country = ?
 and state = ?
 group by county
 "
-    (days-ago 14 date)
+    (days-ago days date)
     date
     country
     state]))

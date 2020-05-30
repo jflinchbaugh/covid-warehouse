@@ -24,7 +24,7 @@
   (dim-dates ds)
 
   (->>
-   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
+   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 7)
    (map (comp prn vals)))
 
   (->>
