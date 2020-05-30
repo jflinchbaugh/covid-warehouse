@@ -18,13 +18,11 @@
 
   (load-dim-location! ds)
 
-  (dim-locations ds)
-
   (load-dim-date! ds)
 
-  (dim-dates ds)
-
   (dim-locations ds)
+
+  (dim-dates ds)
 
   (->>
    (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
