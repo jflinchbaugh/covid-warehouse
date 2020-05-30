@@ -120,8 +120,8 @@ insert into covid_day (
 (defn create-dim-location! [ds]
   (drop-dim-location! ds)
   (jdbc/execute!
-    ds
-    ["
+   ds
+   ["
 create table dim_location (
   location_key uuid primary key,
   country varchar,
@@ -144,18 +144,18 @@ insert into dim_location (
     state
     county]))
 
-(defn dim-locations [ds] 
+(defn dim-locations [ds]
   (->>
-    (jdbc/execute!
-      ds
-      ["select location_key, country, state, county from dim_location"])
-    (map vals)))
+   (jdbc/execute!
+    ds
+    ["select location_key, country, state, county from dim_location"])
+   (map vals)))
 
 (defn load-dim-location! [ds]
   (let [existing (->> ds
-                  dim-locations
-                  (map rest)
-                  set)]
+                      dim-locations
+                      (map rest)
+                      set)]
     (->>
      (jdbc/execute! ds ["select distinct country, state, county from covid_day"])
      (pmap vals)
@@ -171,8 +171,8 @@ insert into dim_location (
 (defn create-dim-date! [ds]
   (drop-dim-date! ds)
   (jdbc/execute!
-    ds
-    ["
+   ds
+   ["
 create table dim_date (
   date_key uuid primary key,
   date timestamp,
@@ -180,32 +180,32 @@ create table dim_date (
 
 (defn insert-dim-date! [ds [date]]
   (jdbc/execute!
-    ds
-    ["
+   ds
+   ["
 insert into dim_date (
   date_key,
   date
 ) values (?, ?)"
-     (uuid)
-     date]))
+    (uuid)
+    date]))
 
 (defn dim-dates [ds]
   (->>
-    (jdbc/execute!
-      ds
-      ["select date_key, date from dim_date"])
-    (map vals)))
+   (jdbc/execute!
+    ds
+    ["select date_key, date from dim_date"])
+   (map vals)))
 
 (defn load-dim-date! [ds]
   (let [existing (->> ds dim-dates (map rest) set)]
     (->>
-      (jdbc/execute! ds ["select distinct date from covid_day"])
-      (pmap vals)
-      #_(pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
-      (filter (complement existing))
-      (pmap (partial insert-dim-date! ds))
-      doall
-      count)))
+     (jdbc/execute! ds ["select distinct date from covid_day"])
+     (pmap vals)
+     #_(pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
+     (filter (complement existing))
+     (pmap (partial insert-dim-date! ds))
+     doall
+     count)))
 
 (defn create-dims! [ds]
   (create-dim-location! ds)
