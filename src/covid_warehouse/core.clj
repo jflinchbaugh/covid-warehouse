@@ -2,7 +2,6 @@
   (:gen-class)
   (:require [java-time :as t]
             [clojure.string :as str]
-            [covid-warehouse.reader :refer :all]
             [covid-warehouse.db-warehouse :refer :all]
             [covid-warehouse.db-queries :refer :all]))
 
