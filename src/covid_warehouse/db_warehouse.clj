@@ -6,7 +6,7 @@
 
 (def ds (jdbc/get-datasource {:dbtype "h2:mem" :dbname "covid"}))
 
-(def insert-values
+(def day-values
   (juxt :date :country :state :county
         :cases :cases-change
         :deaths :deaths-change
@@ -47,7 +47,7 @@ insert into covid_day (
   recovery_total,
   recovery_change
 ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-         (insert-values r))))
+         (day-values r))))
 
 (def location-grouping (juxt :country :state :county))
 
