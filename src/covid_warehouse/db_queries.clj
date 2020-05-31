@@ -72,3 +72,23 @@ group by country
 order by s
 "])
     ))
+
+(defn covid-complete [ds]
+  (->>
+    (jdbc/execute!
+      ds
+      ["
+select
+  d.date
+  , l.country
+  , l.state
+  , l.county
+  , f.case_change
+  , f.death_change
+  , f.recovery_change
+from fact_day f
+join dim_date d
+on d.date_key = f.date_key
+join dim_location l
+on l.location_key = f.location_key
+"])))

@@ -23,8 +23,16 @@
 
   (dim-dates ds)
 
+  (create-fact-day! ds)
+
+  (load-fact-day! ds)
+
+  (fact-days ds)
+
+  (covid-complete ds)
+
   (->>
-   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 7)
+   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
    (map (comp prn vals)))
 
   (->>

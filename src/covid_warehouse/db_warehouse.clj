@@ -6,7 +6,7 @@
 
 (def ds (jdbc/get-datasource {:dbtype "h2:mem" :dbname "covid"}))
 
-(def day-values
+(def insert-values
   (juxt :date :country :state :county
         :cases :cases-change
         :deaths :deaths-change
@@ -47,7 +47,7 @@ insert into covid_day (
   recovery_total,
   recovery_change
 ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-         (day-values r))))
+         (insert-values r))))
 
 (def location-grouping (juxt :country :state :county))
 
@@ -151,6 +151,11 @@ insert into dim_location (
     ["select location_key, country, state, county from dim_location"])
    (map vals)))
 
+(defn na-fields
+  "replace empty strings with N/A"
+  [r]
+  (pmap (fn [v] (if (and (string? v) (str/blank? v)) "N/A" v)) r))
+
 (defn load-dim-location! [ds]
   (let [existing (->> ds
                       dim-locations
@@ -159,7 +164,7 @@ insert into dim_location (
     (->>
      (jdbc/execute! ds ["select distinct country, state, county from covid_day"])
      (pmap vals)
-     (pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
+     (pmap na-fields)
      (filter (complement existing))
      (pmap (partial insert-dim-location! ds))
      doall
@@ -201,7 +206,7 @@ insert into dim_date (
     (->>
      (jdbc/execute! ds ["select distinct date from covid_day"])
      (pmap vals)
-     #_(pmap (fn [r] (pmap (fn [v] (if (str/blank? v) "N/A" v)) r)))
+     (pmap na-fields)
      (filter (complement existing))
      (pmap (partial insert-dim-date! ds))
      doall
@@ -210,3 +215,94 @@ insert into dim_date (
 (defn create-dims! [ds]
   (create-dim-location! ds)
   (create-dim-date! ds))
+
+;; facts
+
+(defn drop-fact-day! [ds]
+  (jdbc/execute! ds ["drop table fact_day if exists"]))
+
+(defn create-fact-day! [ds]
+  (drop-fact-day! ds)
+  (jdbc/execute!
+   ds
+   ["
+create table fact_day (
+  date_key uuid
+  , location_key uuid
+  , case_change int
+  , death_change int
+  , recovery_change int
+  , unique (date_key, location_key))"]))
+
+(defn insert-fact-day!
+  [ds
+   [date-key location-key case-change death-change recovery-change]]
+  (jdbc/execute!
+   ds
+   ["
+insert into fact_day (
+  date_key,
+  location_key,
+  case_change,
+  death_change,
+  recovery_change
+) values (?, ?, ?, ?, ?)"
+    date-key
+    location-key
+    case-change
+    death-change
+    recovery-change]))
+
+(defn fact-days [ds]
+  (->>
+   (jdbc/execute!
+    ds
+    ["
+select
+  date_key
+  , location_key
+  , case_change
+  , death_change
+  , recovery_change
+from
+  fact_day"])
+   (map vals)))
+
+(defn dim->lookup [dim]
+  (->> dim
+       (reduce (fn [lookup row] (assoc lookup (rest row) (first row))) {})))
+
+(defn vals->dims
+  [date-lookup
+   location-lookup
+   [date country state county case-change death-change recovery-change]]
+  [(date-lookup [date])
+   (location-lookup [country state county])
+   case-change
+   death-change
+   recovery-change])
+
+(defn load-fact-day! [ds]
+  (let [existing (->> ds
+                      fact-days
+                      set)
+        date-lookup (dim->lookup (dim-dates ds))
+        location-lookup (dim->lookup (dim-locations ds))]
+    (->>
+     (jdbc/execute! ds ["
+select
+  date,
+  country,
+  state,
+  county,
+  case_change,
+  death_change,
+  recovery_change
+from covid_day"])
+     (pmap vals)
+     (pmap na-fields)
+     (pmap (partial vals->dims date-lookup location-lookup))
+     (filter (complement existing))
+     (pmap (partial insert-fact-day! ds))
+     doall
+     count)))
