@@ -8,9 +8,35 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!"))
+
+  (println "staging data")
+  (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+
+  (println "loading dimensions")
+  (create-dims! ds)
+  (load-dim-location! ds)
+  (load-dim-date! ds)
+
+  (println "loading facts")
+  (create-fact-day! ds)
+  (load-fact-day! ds)
+
+  (println "querying for lancaster")
+  (->>
+    (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
+    (map (comp println vals))
+    doall)
+
+  (println "totals")
+  (->>
+    (dw-sums-by-county ds "US" "Pennsylvania" "Lancaster")
+    (map (comp println vals))
+    doall))
+
 
 (comment
+  (-main)
+
   (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
   (create-dims! ds)
