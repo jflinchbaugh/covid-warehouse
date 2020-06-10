@@ -19,7 +19,7 @@
   (drop-table! ds)
   (jdbc/execute! ds ["
 create table covid_day (
-  date timestamp,
+  date date,
   country varchar,
   state varchar,
   county varchar,
@@ -180,25 +180,59 @@ insert into dim_location (
    ["
 create table dim_date (
   date_key uuid primary key,
-  date timestamp,
+  date date,
+  year int,
+  month int,
+  day_of_month int,
+  day_of_week varchar,
   unique (date))"]))
 
 (defn insert-dim-date! [ds [date]]
-  (jdbc/execute!
-   ds
-   ["
+  (let [
+        [year month day-of-month dow]
+        (t/as
+          (t/local-date-time date)
+          :year
+          :month-of-year
+          :day-of-month
+          :day-of-week)
+        day-of-week
+        (str/capitalize (.name (t/day-of-week dow)))
+        ]
+    (jdbc/execute!
+      ds
+      ["
 insert into dim_date (
-  date_key,
-  date
-) values (?, ?)"
-    (uuid)
-    date]))
+  date_key
+  , date
+  , year
+  , month
+  , day_of_month
+  , day_of_week
+) values (?, ?, ?, ?, ?, ?)"
+       (uuid)
+       date
+       year
+       month
+       day-of-month
+       day-of-week])))
 
 (defn dim-dates [ds]
   (->>
    (jdbc/execute!
     ds
-    ["select date_key, date from dim_date"])
+    ["
+select
+  date_key
+  , date
+  , year
+  , month
+  , day_of_month
+  , day_of_week
+from
+  dim_date
+order by
+  date"])
    (map vals)))
 
 (defn load-dim-date! [ds]
@@ -282,14 +316,8 @@ from
    death-change
    recovery-change])
 
-(defn load-fact-day! [ds]
-  (let [existing (->> ds
-                      fact-days
-                      set)
-        date-lookup (dim->lookup (dim-dates ds))
-        location-lookup (dim->lookup (dim-locations ds))]
-    (->>
-     (jdbc/execute! ds ["
+(defn staged-data [ds]
+  (jdbc/execute! ds ["
 select
   date,
   country,
@@ -298,7 +326,21 @@ select
   case_change,
   death_change,
   recovery_change
-from covid_day"])
+from
+  covid_day
+order by
+  date"]))
+
+(defn load-fact-day! [ds]
+  (let [existing (->> ds
+                      fact-days
+                      set)
+        date-lookup (->> (dim-dates ds) (map (partial take 2)) dim->lookup)
+
+        location-lookup (dim->lookup (dim-locations ds))]
+    (->>
+     ds
+     staged-data
      (pmap vals)
      (pmap na-fields)
      (pmap (partial vals->dims date-lookup location-lookup))

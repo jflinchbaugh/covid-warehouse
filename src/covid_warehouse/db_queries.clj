@@ -92,3 +92,65 @@ on d.date_key = f.date_key
 join dim_location l
 on l.location_key = f.location_key
 "])))
+
+(defn dw-series-by-county [ds country state county]
+  (->>
+    (jdbc/execute!
+      ds
+      ["
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , l.county
+  , f.case_change
+  , f.death_change
+  , f.recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+  and l.county = ?
+order by
+  d.date
+"
+       country
+       state county
+       ])))
+
+(defn dw-sums-by-county [ds country state county]
+  (->>
+    (jdbc/execute!
+      ds
+      ["
+select
+  l.country
+  , l.state
+  , l.county
+  , sum(f.case_change)
+  , sum(f.death_change)
+  , sum(f.recovery_change)
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+  and l.county = ?
+group by
+  l.country
+  , l.state
+  , l.county"
+       country
+       state
+       county
+       ])))

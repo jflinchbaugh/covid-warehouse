@@ -24,7 +24,18 @@
   (println "querying for lancaster")
   (->>
     (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
-    (map (comp println vals))
+    (map
+      (comp
+        println
+        (juxt
+          :DIM_DATE/YEAR
+          :DIM_DATE/MONTH
+          :DIM_DATE/DAY_OF_MONTH
+          :DIM_LOCATION/COUNTRY
+          :DIM_LOCATION/STATE
+          :DIM_LOCATION/COUNTY
+          :FACT_DAY/CASE_CHANGE
+          :FACT_DAY/DEATH_CHANGE)))
     doall)
 
   (println "totals")
@@ -53,17 +64,34 @@
 
   (load-fact-day! ds)
 
-  (fact-days ds)
+  (take 20 (fact-days ds))
+
+  (take 20 (map :COVID_DAY/DATE (staged-data ds)))
+
+  (dim->lookup (map (partial take 2) (dim-dates ds)))
 
   (covid-complete ds)
+
+  (t/local-date (t/java-date) "UTC")
 
   (->>
    (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
    (map (comp prn vals)))
 
   (->>
-   (series-by-county ds "US" "Pennsylvania" "Lancaster")
-   (map (comp prn vals)))
+   (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
+   (map
+     (comp
+       prn
+       (juxt
+         :DIM_DATE/YEAR
+         :DIM_DATE/MONTH
+         :DIM_DATE/DAY_OF_MONTH
+         :DIM_LOCATION/COUNTRY
+         :DIM_LOCATION/STATE
+         :DIM_LOCATION/COUNTY
+         :FACT_DAY/CASE_CHANGE
+         :FACT_DAY/DEATH_CHANGE))))
 
   (->>
     (deaths-by-country ds)
