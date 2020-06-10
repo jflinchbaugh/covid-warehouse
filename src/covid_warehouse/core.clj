@@ -35,7 +35,8 @@
           :DIM_LOCATION/STATE
           :DIM_LOCATION/COUNTY
           :FACT_DAY/CASE_CHANGE
-          :FACT_DAY/DEATH_CHANGE)))
+          :FACT_DAY/DEATH_CHANGE
+          :FACT_DAY/RECOVERY_CHANGE)))
     doall)
 
   (println "totals")
