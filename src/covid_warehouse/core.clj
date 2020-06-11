@@ -27,6 +27,7 @@
     (map
       (comp
         println
+        (partial str/join " ")
         (juxt
           :DIM_DATE/YEAR
           :DIM_DATE/MONTH
@@ -42,7 +43,7 @@
   (println "totals")
   (->>
     (dw-sums-by-county ds "US" "Pennsylvania" "Lancaster")
-    (map (comp println vals))
+    (map (comp println (partial str/join " ") vals))
     doall))
 
 
