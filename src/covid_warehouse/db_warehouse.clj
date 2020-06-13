@@ -127,19 +127,12 @@ create table dim_location (
   unique (country, state, county))"]))
 
 (defn insert-dim-location! [ds [country state county]]
-  (jdbc/execute!
-   ds
-   ["
-insert into dim_location (
-  location_key,
-  country,
-  state,
-  county
-) values (?, ?, ?, ?)"
-    (uuid)
-    country
-    state
-    county]))
+  (sql/insert! ds
+    :dim_location
+    {:location_key (uuid)
+     :country country
+     :state state
+     :county county}))
 
 (defn dim-locations [ds]
   (->>
