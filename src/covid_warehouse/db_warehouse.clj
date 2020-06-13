@@ -2,15 +2,10 @@
   (:require [java-time :as t]
             [clojure.string :as str]
             [next.jdbc :as jdbc]
+            [next.jdbc.sql :as sql]
             [covid-warehouse.reader :refer :all]))
 
 (def ds (jdbc/get-datasource {:dbtype "h2:mem" :dbname "covid"}))
-
-(def insert-values
-  (juxt :date :country :state :county
-        :cases :cases-change
-        :deaths :deaths-change
-        :recoveries :recoveries-change))
 
 (defn drop-table! [ds]
   (jdbc/execute! ds ["drop table covid_day if exists"]))
@@ -31,23 +26,25 @@ create table covid_day (
   recovery_change int,
   primary key (date, country, state, county))"]))
 
+(def stage-map
+  {:date :date
+   :country :country
+   :state :state
+   :county :county
+   :cases :case_total
+   :cases-change :case_change
+   :deaths :death_total
+   :deaths-change :death_change
+   :recoveries :recovery_total
+   :recoveries-change :recovery_change})
+
+(defn rec->stage
+  "turn a record map into sql map"
+  [r]
+  (into {} (map (fn [[k v]] [(stage-map k) v]) r)))
+
 (defn insert-day! [ds r]
-  (jdbc/execute!
-   ds
-   (cons "
-insert into covid_day (
-  date,
-  country,
-  state,
-  county,
-  case_total,
-  case_change,
-  death_total,
-  death_change,
-  recovery_total,
-  recovery_change
-) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-         (insert-values r))))
+  (sql/insert! ds :covid_day (rec->stage r)))
 
 (def location-grouping (juxt :country :state :county))
 
@@ -188,20 +185,18 @@ create table dim_date (
   unique (date))"]))
 
 (defn insert-dim-date! [ds [date]]
-  (let [
-        [year month day-of-month dow]
+  (let [[year month day-of-month dow]
         (t/as
-          (t/local-date-time date)
-          :year
-          :month-of-year
-          :day-of-month
-          :day-of-week)
+         (t/local-date-time date)
+         :year
+         :month-of-year
+         :day-of-month
+         :day-of-week)
         day-of-week
-        (str/capitalize (.name (t/day-of-week dow)))
-        ]
+        (str/capitalize (.name (t/day-of-week dow)))]
     (jdbc/execute!
-      ds
-      ["
+     ds
+     ["
 insert into dim_date (
   date_key
   , date
@@ -210,12 +205,12 @@ insert into dim_date (
   , day_of_month
   , day_of_week
 ) values (?, ?, ?, ?, ?, ?)"
-       (uuid)
-       date
-       year
-       month
-       day-of-month
-       day-of-week])))
+      (uuid)
+      date
+      year
+      month
+      day-of-month
+      day-of-week])))
 
 (defn dim-dates [ds]
   (->>
