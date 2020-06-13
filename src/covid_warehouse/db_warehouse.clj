@@ -136,11 +136,11 @@ create table dim_location (
     :county county}))
 
 (defn dim-locations [ds]
-  (->>
+  (map
+   vals
    (jdbc/execute!
     ds
-    ["select location_key, country, state, county from dim_location"])
-   (map vals)))
+    ["select location_key, country, state, county from dim_location"])))
 
 (defn na-fields
   "replace empty strings with N/A"
@@ -262,7 +262,8 @@ create table fact_day (
     :recovery_change recovery-change}))
 
 (defn fact-days [ds]
-  (->>
+  (map
+   vals
    (jdbc/execute!
     ds
     ["
@@ -273,12 +274,13 @@ select
   , death_change
   , recovery_change
 from
-  fact_day"])
-   (map vals)))
+  fact_day"])))
 
 (defn dim->lookup [dim]
-  (->> dim
-       (reduce (fn [lookup row] (assoc lookup (rest row) (first row))) {})))
+  (reduce
+   (fn [lookup row] (assoc lookup (rest row) (first row)))
+   {}
+   dim))
 
 (defn vals->dims
   [date-lookup

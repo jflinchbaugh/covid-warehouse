@@ -1,8 +1,8 @@
 (ns covid-warehouse.db-queries
-  (:require 
-            [java-time :as t]
-            [next.jdbc :as jdbc]
-            [covid-warehouse.db-warehouse :refer :all]))
+  (:require
+   [java-time :as t]
+   [next.jdbc :as jdbc]
+   [covid-warehouse.db-warehouse :refer :all]))
 
 (defn days-ago [days date]
   (-> date (t/adjust t/minus (t/days days))))
@@ -45,9 +45,9 @@ order by date, country, state, county
 
 (defn deaths-by-state [ds]
   (->>
-    (jdbc/execute!
-      ds
-      ["
+   (jdbc/execute!
+    ds
+    ["
 select
   sum(death_change) as s,
   country,
@@ -56,28 +56,25 @@ from covid_day
 group by
   country,
   state
-order by s"])
-    ))
+order by s"])))
 
 (defn deaths-by-country [ds]
   (->>
-    (jdbc/execute!
-      ds
-      ["
+   (jdbc/execute!
+    ds
+    ["
 select
   sum(death_change) as s
   , country
 from covid_day
 group by country
 order by s
-"])
-    ))
+"])))
 
 (defn covid-complete [ds]
-  (->>
-    (jdbc/execute!
-      ds
-      ["
+  (jdbc/execute!
+   ds
+   ["
 select
   d.date
   , l.country
@@ -91,13 +88,12 @@ join dim_date d
 on d.date_key = f.date_key
 join dim_location l
 on l.location_key = f.location_key
-"])))
+"]))
 
 (defn dw-series-by-county [ds country state county]
-  (->>
-    (jdbc/execute!
-      ds
-      ["
+  (jdbc/execute!
+   ds
+   ["
 select
   d.date
   , d.year
@@ -121,15 +117,13 @@ where
 order by
   d.date
 "
-       country
-       state county
-       ])))
+    country
+    state county]))
 
 (defn dw-sums-by-county [ds country state county]
-  (->>
-    (jdbc/execute!
-      ds
-      ["
+  (jdbc/execute!
+   ds
+   ["
 select
   l.country
   , l.state
@@ -150,7 +144,6 @@ group by
   l.country
   , l.state
   , l.county"
-       country
-       state
-       county
-       ])))
+    country
+    state
+    county]))
