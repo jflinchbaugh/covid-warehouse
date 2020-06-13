@@ -23,29 +23,28 @@
 
   (println "querying for lancaster")
   (->>
-    (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
-    (map
-      (comp
-        println
-        (partial str/join " ")
-        (juxt
-          :DIM_DATE/YEAR
-          :DIM_DATE/MONTH
-          :DIM_DATE/DAY_OF_MONTH
-          :DIM_LOCATION/COUNTRY
-          :DIM_LOCATION/STATE
-          :DIM_LOCATION/COUNTY
-          :FACT_DAY/CASE_CHANGE
-          :FACT_DAY/DEATH_CHANGE
-          :FACT_DAY/RECOVERY_CHANGE)))
-    doall)
+   (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
+   (map
+    (comp
+     println
+     (partial str/join " ")
+     (juxt
+      :DIM_DATE/YEAR
+      :DIM_DATE/MONTH
+      :DIM_DATE/DAY_OF_MONTH
+      :DIM_LOCATION/COUNTRY
+      :DIM_LOCATION/STATE
+      :DIM_LOCATION/COUNTY
+      :FACT_DAY/CASE_CHANGE
+      :FACT_DAY/DEATH_CHANGE
+      :FACT_DAY/RECOVERY_CHANGE)))
+   doall)
 
   (println "totals")
   (->>
-    (dw-sums-by-county ds "US" "Pennsylvania" "Lancaster")
-    (map (comp println (partial str/join " ") vals))
-    doall))
-
+   (dw-sums-by-county ds "US" "Pennsylvania" "Lancaster")
+   (map (comp println (partial str/join " ") vals))
+   doall))
 
 (comment
   (-main)
@@ -76,28 +75,27 @@
 
   (t/local-date (t/java-date) "UTC")
 
-  (->>
-   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14)
-   (map (comp prn vals)))
+  (map
+   (comp prn vals)
+   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14))
+
+  (map
+   (comp
+    prn
+    (juxt
+     :DIM_DATE/YEAR
+     :DIM_DATE/MONTH
+     :DIM_DATE/DAY_OF_MONTH
+     :DIM_LOCATION/COUNTRY
+     :DIM_LOCATION/STATE
+     :DIM_LOCATION/COUNTY
+     :FACT_DAY/CASE_CHANGE
+     :FACT_DAY/DEATH_CHANGE))
+   (dw-series-by-county ds "US" "Pennsylvania" "Lancaster"))
 
   (->>
-   (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
-   (map
-     (comp
-       prn
-       (juxt
-         :DIM_DATE/YEAR
-         :DIM_DATE/MONTH
-         :DIM_DATE/DAY_OF_MONTH
-         :DIM_LOCATION/COUNTRY
-         :DIM_LOCATION/STATE
-         :DIM_LOCATION/COUNTY
-         :FACT_DAY/CASE_CHANGE
-         :FACT_DAY/DEATH_CHANGE))))
-
-  (->>
-    (deaths-by-country ds)
-    (pmap vals)
-    (map prn))
+   (deaths-by-country ds)
+   (pmap vals)
+   (map prn))
 
   nil)

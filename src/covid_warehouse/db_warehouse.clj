@@ -199,7 +199,7 @@ create table dim_date (
       :day_of_week day-of-week})))
 
 (defn dim-dates [ds]
-  (->>
+  (map vals
    (jdbc/execute!
     ds
     ["
@@ -213,8 +213,7 @@ select
 from
   dim_date
 order by
-  date"])
-   (map vals)))
+  date"])))
 
 (defn load-dim-date! [ds]
   (let [existing (->> ds dim-dates (map rest) set)]

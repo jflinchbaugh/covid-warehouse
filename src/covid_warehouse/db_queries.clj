@@ -5,7 +5,7 @@
    [covid-warehouse.db-warehouse :refer :all]))
 
 (defn days-ago [days date]
-  (-> date (t/adjust t/minus (t/days days))))
+  (t/adjust date t/minus (t/days days)))
 
 (defn cases-by-window [ds country state date days]
   (jdbc/execute!
