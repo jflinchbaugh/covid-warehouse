@@ -252,21 +252,14 @@ create table fact_day (
 (defn insert-fact-day!
   [ds
    [date-key location-key case-change death-change recovery-change]]
-  (jdbc/execute!
+  (sql/insert!
    ds
-   ["
-insert into fact_day (
-  date_key,
-  location_key,
-  case_change,
-  death_change,
-  recovery_change
-) values (?, ?, ?, ?, ?)"
-    date-key
-    location-key
-    case-change
-    death-change
-    recovery-change]))
+   :fact_day
+   {:date_key date-key
+    :location_key location-key
+    :case_change case-change
+    :death_change death-change
+    :recovery_change recovery-change}))
 
 (defn fact-days [ds]
   (->>
