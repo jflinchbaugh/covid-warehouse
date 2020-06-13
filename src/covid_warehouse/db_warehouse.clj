@@ -127,12 +127,13 @@ create table dim_location (
   unique (country, state, county))"]))
 
 (defn insert-dim-location! [ds [country state county]]
-  (sql/insert! ds
-    :dim_location
-    {:location_key (uuid)
-     :country country
-     :state state
-     :county county}))
+  (sql/insert!
+   ds
+   :dim_location
+   {:location_key (uuid)
+    :country country
+    :state state
+    :county county}))
 
 (defn dim-locations [ds]
   (->>
@@ -187,23 +188,15 @@ create table dim_date (
          :day-of-week)
         day-of-week
         (str/capitalize (.name (t/day-of-week dow)))]
-    (jdbc/execute!
+    (sql/insert!
      ds
-     ["
-insert into dim_date (
-  date_key
-  , date
-  , year
-  , month
-  , day_of_month
-  , day_of_week
-) values (?, ?, ?, ?, ?, ?)"
-      (uuid)
-      date
-      year
-      month
-      day-of-month
-      day-of-week])))
+     :dim_date
+     {:date_key (uuid)
+      :date date
+      :year year
+      :month month
+      :day_of_month day-of-month
+      :day_of_week day-of-week})))
 
 (defn dim-dates [ds]
   (->>
