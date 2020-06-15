@@ -21,30 +21,31 @@
   (create-fact-day! ds)
   (load-fact-day! ds)
 
-  (println "querying for lancaster")
-  (->>
-   (dw-series-by-county ds "US" "Pennsylvania" "Lancaster")
-   (map
-    (comp
-     println
-     (partial str/join " ")
-     (juxt
-      :DIM_DATE/YEAR
-      :DIM_DATE/MONTH
-      :DIM_DATE/DAY_OF_MONTH
-      :DIM_LOCATION/COUNTRY
-      :DIM_LOCATION/STATE
-      :DIM_LOCATION/COUNTY
-      :FACT_DAY/CASE_CHANGE
-      :FACT_DAY/DEATH_CHANGE
-      :FACT_DAY/RECOVERY_CHANGE)))
-   doall)
+  (let [[country state county] args]
+    (println "querying for " country " " state " " county)
+    (->>
+      (dw-series-by-county ds country state county)
+      (map
+        (comp
+          println
+          (partial str/join " ")
+          (juxt
+            :DIM_DATE/YEAR
+            :DIM_DATE/MONTH
+            :DIM_DATE/DAY_OF_MONTH
+            :DIM_LOCATION/COUNTRY
+            :DIM_LOCATION/STATE
+            :DIM_LOCATION/COUNTY
+            :FACT_DAY/CASE_CHANGE
+            :FACT_DAY/DEATH_CHANGE
+            :FACT_DAY/RECOVERY_CHANGE)))
+      doall)
 
-  (println "totals")
-  (->>
-   (dw-sums-by-county ds "US" "Pennsylvania" "Lancaster")
-   (map (comp println (partial str/join " ") vals))
-   doall))
+    (println "totals")
+    (->>
+      (dw-sums-by-county ds country state county)
+      (map (comp println (partial str/join " ") vals))
+      doall)))
 
 (comment
   (-main)
