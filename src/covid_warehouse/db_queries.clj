@@ -120,7 +120,7 @@ order by
     country
     state county]))
 
-(defn dw-series-by-county [ds country state county]
+(defn dw-series-by-state [ds country state]
   (jdbc/execute!
     ds
     ["
@@ -131,10 +131,9 @@ select
   , d.day_of_month
   , l.country
   , l.state
-  , l.county
-  , f.case_change
-  , f.death_change
-  , f.recovery_change
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
 from fact_day f
 join dim_date d
   on d.date_key = f.date_key
@@ -142,16 +141,19 @@ join dim_location l
   on l.location_key = f.location_key
 where
   l.country = ?
-  and (l.state = ? or ? is null)
-  and (l.county = ? or ? is null)
+  and l.state = ?
+group by
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
 order by
   d.date
 "
      country
-     state
-     state
-     county
-     county]))
+     state]))
 
 (defn dw-sums-by-county [ds country state county]
   (jdbc/execute!
@@ -161,9 +163,9 @@ select
   l.country
   , l.state
   , l.county
-  , sum(f.case_change)
-  , sum(f.death_change)
-  , sum(f.recovery_change)
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
 from fact_day f
 join dim_date d
   on d.date_key = f.date_key
@@ -180,3 +182,27 @@ group by
     country
     state
     county]))
+
+(defn dw-sums-by-state [ds country state]
+  (jdbc/execute!
+    ds
+    ["
+select
+  l.country
+  , l.state
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+group by
+  l.country
+  , l.state"
+     country
+     state]))

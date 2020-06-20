@@ -5,6 +5,44 @@
             [covid-warehouse.db-warehouse :refer :all]
             [covid-warehouse.db-queries :refer :all]))
 
+(defn dw-series [ds country state county]
+  (cond
+    (nil? county)
+    (->>
+      (dw-series-by-state ds country state)
+      (map
+        (comp
+          println
+          (partial str/join " ")
+          (juxt
+            :DIM_DATE/YEAR
+            :DIM_DATE/MONTH
+            :DIM_DATE/DAY_OF_MONTH
+            :DIM_LOCATION/COUNTRY
+            :DIM_LOCATION/STATE
+            :CASE_CHANGE
+            :DEATH_CHANGE
+            :RECOVERY_CHANGE)))
+      doall)
+    :else
+    (->>
+     (dw-series-by-county ds country state county)
+     (map
+      (comp
+       println
+       (partial str/join " ")
+       (juxt
+        :DIM_DATE/YEAR
+        :DIM_DATE/MONTH
+        :DIM_DATE/DAY_OF_MONTH
+        :DIM_LOCATION/COUNTRY
+        :DIM_LOCATION/STATE
+        :DIM_LOCATION/COUNTY
+        :FACT_DAY/CASE_CHANGE
+        :FACT_DAY/DEATH_CHANGE
+        :FACT_DAY/RECOVERY_CHANGE)))
+     doall)))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
@@ -22,30 +60,21 @@
   (load-fact-day! ds)
 
   (let [[country state county] args]
-    (println "querying for " country " " state " " county)
-    (->>
-      (dw-series-by-county ds country state county)
-      (map
-        (comp
-          println
-          (partial str/join " ")
-          (juxt
-            :DIM_DATE/YEAR
-            :DIM_DATE/MONTH
-            :DIM_DATE/DAY_OF_MONTH
-            :DIM_LOCATION/COUNTRY
-            :DIM_LOCATION/STATE
-            :DIM_LOCATION/COUNTY
-            :FACT_DAY/CASE_CHANGE
-            :FACT_DAY/DEATH_CHANGE
-            :FACT_DAY/RECOVERY_CHANGE)))
-      doall)
-
+    (println "querying for" country state county)
+    (dw-series ds country state county)
     (println "totals")
-    (->>
-      (dw-sums-by-county ds country state county)
-      (map (comp println (partial str/join " ") vals))
-      doall)))
+    (cond
+      (nil? county)
+      (->>
+        (dw-sums-by-state ds country state)
+        (map (comp println (partial str/join " ") vals))
+        doall)
+      :else
+      (->>
+        (dw-sums-by-county ds country state county)
+        (map (comp println (partial str/join " ") vals))
+        doall)
+      )))
 
 (comment
   (-main)
