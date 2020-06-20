@@ -120,6 +120,39 @@ order by
     country
     state county]))
 
+(defn dw-series-by-county [ds country state county]
+  (jdbc/execute!
+    ds
+    ["
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , l.county
+  , f.case_change
+  , f.death_change
+  , f.recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and (l.state = ? or ? is null)
+  and (l.county = ? or ? is null)
+order by
+  d.date
+"
+     country
+     state
+     state
+     county
+     county]))
+
 (defn dw-sums-by-county [ds country state county]
   (jdbc/execute!
    ds
