@@ -48,6 +48,7 @@
   [& args]
 
   (println "staging data")
+  (create-stage! ds)
   (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
   (println "loading dimensions")
@@ -78,6 +79,8 @@
 
 (comment
   (-main)
+
+  (create-stage! ds)
 
   (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 

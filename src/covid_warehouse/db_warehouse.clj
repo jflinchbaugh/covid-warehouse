@@ -10,7 +10,7 @@
 (defn drop-table! [ds]
   (jdbc/execute! ds ["drop table covid_day if exists"]))
 
-(defn create-table! [ds]
+(defn create-stage! [ds]
   (drop-table! ds)
   (jdbc/execute! ds ["
 create table covid_day (
@@ -93,7 +93,6 @@ create table covid_day (
   (not= [0 0 0] ((juxt :cases-change :deaths-change :recoveries-change) r)))
 
 (defn stage-data! [ds input-dir]
-  (create-table! ds)
   (->>
    input-dir
    read-csv
