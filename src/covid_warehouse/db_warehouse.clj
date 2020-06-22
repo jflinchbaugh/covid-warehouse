@@ -5,7 +5,7 @@
             [next.jdbc.sql :as sql]
             [covid-warehouse.reader :refer :all]))
 
-(def ds (jdbc/get-datasource {:dbtype "h2:mem" :dbname "covid"}))
+(def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
 
 (defn drop-table! [ds]
   (jdbc/execute! ds ["drop table covid_day if exists"]))

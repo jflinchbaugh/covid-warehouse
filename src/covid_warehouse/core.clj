@@ -9,21 +9,21 @@
   (cond
     (nil? county)
     (->>
-      (dw-series-by-state ds country state)
-      (map
-        (comp
-          println
-          (partial str/join " ")
-          (juxt
-            :DIM_DATE/YEAR
-            :DIM_DATE/MONTH
-            :DIM_DATE/DAY_OF_MONTH
-            :DIM_LOCATION/COUNTRY
-            :DIM_LOCATION/STATE
-            :CASE_CHANGE
-            :DEATH_CHANGE
-            :RECOVERY_CHANGE)))
-      doall)
+     (dw-series-by-state ds country state)
+     (map
+      (comp
+       println
+       (partial str/join " ")
+       (juxt
+        :DIM_DATE/YEAR
+        :DIM_DATE/MONTH
+        :DIM_DATE/DAY_OF_MONTH
+        :DIM_LOCATION/COUNTRY
+        :DIM_LOCATION/STATE
+        :CASE_CHANGE
+        :DEATH_CHANGE
+        :RECOVERY_CHANGE)))
+     doall)
     :else
     (->>
      (dw-series-by-county ds country state county)
@@ -44,38 +44,39 @@
      doall)))
 
 (defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
+  [action & args]
 
-  (println "staging data")
-  (create-stage! ds)
-  (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+  (cond
+    (= "load" action)
+    (do
+      (println "staging data")
+      (create-stage! ds)
+      (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
-  (println "loading dimensions")
-  (create-dims! ds)
-  (load-dim-location! ds)
-  (load-dim-date! ds)
+      (println "loading dimensions")
+      (create-dims! ds)
+      (load-dim-location! ds)
+      (load-dim-date! ds)
 
-  (println "loading facts")
-  (create-fact-day! ds)
-  (load-fact-day! ds)
-
-  (let [[country state county] args]
-    (println "querying for" country state county)
-    (dw-series ds country state county)
-    (println "totals")
-    (cond
-      (nil? county)
-      (->>
-        (dw-sums-by-state ds country state)
-        (map (comp println (partial str/join " ") vals))
-        doall)
-      :else
-      (->>
-        (dw-sums-by-county ds country state county)
-        (map (comp println (partial str/join " ") vals))
-        doall)
-      )))
+      (println "loading facts")
+      (create-fact-day! ds)
+      (load-fact-day! ds))
+    (= "query" action)
+    (let [[country state county] args]
+      (println "querying for" country state county)
+      (dw-series ds country state county)
+      (println "totals")
+      (cond
+        (nil? county)
+        (->>
+         (dw-sums-by-state ds country state)
+         (map (comp println (partial str/join " ") vals))
+         doall)
+        :else
+        (->>
+         (dw-sums-by-county ds country state county)
+         (map (comp println (partial str/join " ") vals))
+         doall)))))
 
 (comment
   (-main)
