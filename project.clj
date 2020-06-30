@@ -8,7 +8,8 @@
                  [clojure.java-time "0.3.2"]
                  [seancorfield/next.jdbc "1.0.424"]
                  [com.h2database/h2 "1.4.200"]
-                 [hugsql-next-jdbc "0.1.3"]]
+                 [com.layerware/hugsql-adapter-next-jdbc "0.5.1"]
+                 [com.layerware/hugsql-core "0.5.1"]]
   :main ^:skip-aot covid-warehouse.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

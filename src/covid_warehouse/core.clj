@@ -2,8 +2,7 @@
   (:gen-class)
   (:require [java-time :as t]
             [clojure.string :as str]
-            [covid-warehouse.db-warehouse :refer :all]
-            [covid-warehouse.db-queries :refer :all]))
+            [covid-warehouse.db :refer :all]))
 
 (defn dw-series [ds country state county]
   (cond

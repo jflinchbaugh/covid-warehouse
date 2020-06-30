@@ -1,30 +1,29 @@
-(ns covid-warehouse.db-warehouse
+(ns covid-warehouse.db
   (:require [java-time :as t]
             [clojure.string :as str]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]
+            [hugsql.core :as hugsql]
+            [hugsql.adapter.next-jdbc :as adapter]
             [covid-warehouse.reader :refer :all]))
 
-(def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
+;; regular SQL functions
+(hugsql/def-db-fns "db/covid-warehouse.sql"
+  {:adapter (adapter/hugsql-adapter-next-jdbc)})
 
-(defn drop-table! [ds]
-  (jdbc/execute! ds ["drop table covid_day if exists"]))
+;; development/advanced usage functions that produce a vector containing
+;; SQL and parameters that could be passed to jdbc/execute! etc
+(hugsql/def-sqlvec-fns "db/covid-warehouse.sql"
+  {:adapter (adapter/hugsql-adapter-next-jdbc)})
+
+(def drop-table! drop-covid-day!)
+
+;; datasource
+(def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
 
 (defn create-stage! [ds]
   (drop-table! ds)
-  (jdbc/execute! ds ["
-create table covid_day (
-  date date,
-  country varchar,
-  state varchar,
-  county varchar,
-  case_total int,
-  case_change int,
-  death_total int,
-  death_change int,
-  recovery_total int,
-  recovery_change int,
-  primary key (date, country, state, county))"]))
+  (create-covid-day! ds))
 
 (def stage-map
   {:date :date
@@ -109,9 +108,6 @@ create table covid_day (
 
 (defn uuid []
   (java.util.UUID/randomUUID))
-
-(defn drop-dim-location! [ds]
-  (jdbc/execute! ds ["drop table dim_location if exists"]))
 
 (defn create-dim-location! [ds]
   (drop-dim-location! ds)
@@ -322,3 +318,206 @@ order by
      (pmap (partial insert-fact-day! ds))
      doall
      count)))
+
+(defn days-ago [days date]
+  (t/adjust date t/minus (t/days days)))
+
+(defn cases-by-window [ds country state date days]
+  (jdbc/execute!
+   ds
+   ["
+select county, sum(case_change)
+from covid_day
+where date >= ?
+and date <= ?
+and country = ?
+and state = ?
+group by county
+"
+    (days-ago days date)
+    date
+    country
+    state]))
+
+(defn series-by-county [ds country state county]
+  (jdbc/execute!
+   ds
+   ["
+select
+  date,
+  case_total, case_change,
+  death_total, death_change,
+  recovery_total, recovery_change
+from covid_day
+where country = ?
+and state = ?
+and county = ?
+order by date, country, state, county
+"
+    country
+    state
+    county]))
+
+(defn deaths-by-state [ds]
+  (->>
+   (jdbc/execute!
+    ds
+    ["
+select
+  sum(death_change) as s,
+  country,
+  state
+from covid_day
+group by
+  country,
+  state
+order by s"])))
+
+(defn deaths-by-country [ds]
+  (->>
+   (jdbc/execute!
+    ds
+    ["
+select
+  sum(death_change) as s
+  , country
+from covid_day
+group by country
+order by s
+"])))
+
+(defn covid-complete [ds]
+  (jdbc/execute!
+   ds
+   ["
+select
+  d.date
+  , l.country
+  , l.state
+  , l.county
+  , f.case_change
+  , f.death_change
+  , f.recovery_change
+from fact_day f
+join dim_date d
+on d.date_key = f.date_key
+join dim_location l
+on l.location_key = f.location_key
+"]))
+
+(defn dw-series-by-county [ds country state county]
+  (jdbc/execute!
+   ds
+   ["
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , l.county
+  , f.case_change
+  , f.death_change
+  , f.recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+  and l.county = ?
+order by
+  d.date
+"
+    country
+    state county]))
+
+(defn dw-series-by-state [ds country state]
+  (jdbc/execute!
+    ds
+    ["
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+group by
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+order by
+  d.date
+"
+     country
+     state]))
+
+(defn dw-sums-by-county [ds country state county]
+  (jdbc/execute!
+   ds
+   ["
+select
+  l.country
+  , l.state
+  , l.county
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+  and l.county = ?
+group by
+  l.country
+  , l.state
+  , l.county"
+    country
+    state
+    county]))
+
+(defn dw-sums-by-state [ds country state]
+  (jdbc/execute!
+    ds
+    ["
+select
+  l.country
+  , l.state
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+  and l.state = ?
+group by
+  l.country
+  , l.state"
+     country
+     state]))
