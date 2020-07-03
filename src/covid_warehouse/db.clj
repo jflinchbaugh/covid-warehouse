@@ -142,19 +142,6 @@
 (defn drop-dim-date! [ds]
   (jdbc/execute! ds ["drop table dim_date if exists"]))
 
-(defn create-dim-date! [ds]
-  (jdbc/execute!
-   ds
-   ["
-create table dim_date (
-  date_key uuid primary key,
-  date date,
-  year int,
-  month int,
-  day_of_month int,
-  day_of_week varchar,
-  unique (date))"]))
-
 (defn insert-dim-date! [ds [date]]
   (let [[year month day-of-month dow]
         (t/as
@@ -211,21 +198,6 @@ order by
 
 ;; facts
 
-(defn drop-fact-day! [ds]
-  (jdbc/execute! ds ["drop table fact_day if exists"]))
-
-(defn create-fact-day! [ds]
-  (drop-fact-day! ds)
-  (jdbc/execute!
-   ds
-   ["
-create table fact_day (
-  date_key uuid
-  , location_key uuid
-  , case_change int
-  , death_change int
-  , recovery_change int
-  , unique (date_key, location_key))"]))
 
 (defn insert-fact-day!
   [ds

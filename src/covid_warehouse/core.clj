@@ -58,6 +58,7 @@
       (load-dim-date! ds)
 
       (println "loading facts")
+      (drop-fact-day! ds)
       (create-fact-day! ds)
       (load-fact-day! ds))
     (= "query" action)
@@ -93,6 +94,8 @@
   (dim-locations ds)
 
   (dim-dates ds)
+
+  (drop-fact-day! ds)
 
   (create-fact-day! ds)
 
