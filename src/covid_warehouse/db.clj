@@ -11,11 +11,6 @@
 (hugsql/def-db-fns "db/covid-warehouse.sql"
   {:adapter (adapter/hugsql-adapter-next-jdbc)})
 
-;; development/advanced usage functions that produce a vector containing
-;; SQL and parameters that could be passed to jdbc/execute! etc
-(hugsql/def-sqlvec-fns "db/covid-warehouse.sql"
-  {:adapter (adapter/hugsql-adapter-next-jdbc)})
-
 (def drop-table! drop-covid-day!)
 
 ;; datasource
