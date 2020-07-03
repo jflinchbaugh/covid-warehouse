@@ -104,18 +104,6 @@
 (defn uuid []
   (java.util.UUID/randomUUID))
 
-(defn create-dim-location! [ds]
-  (drop-dim-location! ds)
-  (jdbc/execute!
-   ds
-   ["
-create table dim_location (
-  location_key uuid primary key,
-  country varchar,
-  state varchar,
-  county varchar,
-  unique (country, state, county))"]))
-
 (defn insert-dim-location! [ds [country state county]]
   (sql/insert!
    ds
@@ -155,7 +143,6 @@ create table dim_location (
   (jdbc/execute! ds ["drop table dim_date if exists"]))
 
 (defn create-dim-date! [ds]
-  (drop-dim-date! ds)
   (jdbc/execute!
    ds
    ["
@@ -217,7 +204,9 @@ order by
      count)))
 
 (defn create-dims! [ds]
+  (drop-dim-location! ds)
   (create-dim-location! ds)
+  (drop-dim-date! ds)
   (create-dim-date! ds))
 
 ;; facts
@@ -516,3 +505,8 @@ group by
   , l.state"
      country
      state]))
+
+(comment
+  (create-dims! ds)
+
+  nil?)

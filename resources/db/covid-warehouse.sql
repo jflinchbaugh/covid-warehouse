@@ -28,7 +28,7 @@ create table covid_day (
 -- :doc drop the dim_location table
 drop table dim_location if exists
 
--- :name create-dim-locatio!
+-- :name create-dim-location!
 -- :command :execute
 -- :result :raw
 -- :doc create the covid_day staging table
