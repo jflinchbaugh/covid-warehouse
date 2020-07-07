@@ -11,13 +11,11 @@
 (hugsql/def-db-fns "db/covid-warehouse.sql"
   {:adapter (adapter/hugsql-adapter-next-jdbc)})
 
-(def drop-table! drop-covid-day!)
-
 ;; datasource
 (def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
 
 (defn create-stage! [ds]
-  (drop-table! ds)
+  (drop-covid-day! ds)
   (create-covid-day! ds))
 
 (def stage-map
@@ -35,7 +33,7 @@
 (defn rec->stage
   "turn a record map into sql map"
   [r]
-  (into {} (map (fn [[k v]] [(stage-map k) v]) r)))
+  (into {} (pmap (fn [[k v]] [(stage-map k) v]) r)))
 
 (defn insert-day! [ds r]
   (sql/insert! ds :covid_day (rec->stage r)))
@@ -113,13 +111,6 @@
     :state state
     :county county}))
 
-(defn dim-locations [ds]
-  (map
-   vals
-   (jdbc/execute!
-    ds
-    ["select location_key, country, state, county from dim_location"])))
-
 (defn na-fields
   "replace empty strings with N/A"
   [r]
@@ -128,19 +119,16 @@
 (defn load-dim-location! [ds]
   (let [existing (->> ds
                       dim-locations
-                      (map rest)
+                      (pmap rest)
                       set)]
     (->>
-     (jdbc/execute! ds ["select distinct country, state, county from covid_day"])
+     (distinct-staged-locations ds)
      (pmap vals)
      (pmap na-fields)
      (filter (complement existing))
      (pmap (partial insert-dim-location! ds))
      doall
      count)))
-
-(defn drop-dim-date! [ds]
-  (jdbc/execute! ds ["drop table dim_date if exists"]))
 
 (defn insert-dim-date! [ds [date]]
   (let [[year month day-of-month dow]
@@ -162,27 +150,10 @@
       :day_of_month day-of-month
       :day_of_week day-of-week})))
 
-(defn dim-dates [ds]
-  (map vals
-   (jdbc/execute!
-    ds
-    ["
-select
-  date_key
-  , date
-  , year
-  , month
-  , day_of_month
-  , day_of_week
-from
-  dim_date
-order by
-  date"])))
-
 (defn load-dim-date! [ds]
-  (let [existing (->> ds dim-dates (map rest) set)]
+  (let [existing (->> ds dim-dates (pmap rest) set)]
     (->>
-     (jdbc/execute! ds ["select distinct date from covid_day"])
+     (distinct-staged-dates ds)
      (pmap vals)
      (pmap na-fields)
      (filter (complement existing))
@@ -212,7 +183,7 @@ order by
     :recovery_change recovery-change}))
 
 (defn fact-days [ds]
-  (map
+  (pmap
    vals
    (jdbc/execute!
     ds
@@ -242,28 +213,13 @@ from
    death-change
    recovery-change])
 
-(defn staged-data [ds]
-  (jdbc/execute! ds ["
-select
-  date,
-  country,
-  state,
-  county,
-  case_change,
-  death_change,
-  recovery_change
-from
-  covid_day
-order by
-  date"]))
-
 (defn load-fact-day! [ds]
   (let [existing (->> ds
                       fact-days
                       set)
-        date-lookup (->> (dim-dates ds) (map (partial take 2)) dim->lookup)
+        date-lookup (->> (dim-dates ds) (pmap vals) (pmap (partial take 2)) dim->lookup)
 
-        location-lookup (dim->lookup (dim-locations ds))]
+        location-lookup (dim->lookup (pmap vals (dim-locations ds)))]
     (->>
      ds
      staged-data
@@ -341,25 +297,6 @@ from covid_day
 group by country
 order by s
 "])))
-
-(defn covid-complete [ds]
-  (jdbc/execute!
-   ds
-   ["
-select
-  d.date
-  , l.country
-  , l.state
-  , l.county
-  , f.case_change
-  , f.death_change
-  , f.recovery_change
-from fact_day f
-join dim_date d
-on d.date_key = f.date_key
-join dim_location l
-on l.location_key = f.location_key
-"]))
 
 (defn dw-series-by-county [ds country state county]
   (jdbc/execute!
@@ -477,8 +414,3 @@ group by
   , l.state"
      country
      state]))
-
-(comment
-  (create-dims! ds)
-
-  nil?)

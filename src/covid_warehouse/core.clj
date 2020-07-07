@@ -103,11 +103,11 @@
 
   (take 20 (fact-days ds))
 
-  (take 20 (map :COVID_DAY/DATE (staged-data ds)))
+  (count (fact-days ds))
+
+  (take 20 (map :date (staged-data ds)))
 
   (dim->lookup (map (partial take 2) (dim-dates ds)))
-
-  (covid-complete ds)
 
   (t/local-date (t/java-date) "UTC")
 

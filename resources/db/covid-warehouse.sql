@@ -23,7 +23,6 @@ create table covid_day (
 -- :name drop-dim-location!
 -- :command :execute
 -- :result :raw
--- :doc drop the dim_location table
 drop table dim_location if exists
 
 -- :name create-dim-location!
@@ -35,6 +34,11 @@ create table dim_location (
   state varchar,
   county varchar,
   unique (country, state, county))
+
+-- :name drop-dim-date!
+-- :command :execute
+-- :result :raw
+drop table dim_date if exists
 
 -- :name create-dim-date!
 -- :command :execute
@@ -63,3 +67,64 @@ create table fact_day (
   , death_change int
   , recovery_change int
   , unique (date_key, location_key))
+
+
+-- :name dim-dates
+-- :command :query
+-- :result :many
+select
+  date_key
+  , date
+  , year
+  , month
+  , day_of_month
+  , day_of_week
+from
+  dim_date
+order by
+  date
+
+-- :name dim-locations
+-- :command :query
+-- :result :many
+select
+  location_key
+  , country
+  , state
+  , county
+from
+  dim_location
+
+-- :name distinct-staged-locations
+-- :command :query
+-- :result :many
+select distinct
+  country
+  , state
+  , county
+from
+  covid_day
+
+-- :name distinct-staged-dates
+-- :command :query
+-- :result :many
+select distinct
+  date
+from
+  covid_day
+
+-- :name staged-data
+-- :command :query
+-- :result :many
+select
+  date,
+  country,
+  state,
+  county,
+  case_change,
+  death_change,
+  recovery_change
+from
+  covid_day
+order by
+  date
