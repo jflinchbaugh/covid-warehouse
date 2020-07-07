@@ -33,7 +33,7 @@
 (defn rec->stage
   "turn a record map into sql map"
   [r]
-  (into {} (pmap (fn [[k v]] [(stage-map k) v]) r)))
+  (into {} (map (fn [[k v]] [(stage-map k) v]) r)))
 
 (defn insert-day! [ds r]
   (sql/insert! ds :covid_day (rec->stage r)))
@@ -88,14 +88,14 @@
   (->>
    input-dir
    read-csv
-   (pmap #(pmap str/trim %))
-   (pmap cols->maps)
-   (pmap fix-date)
-   (pmap fix-numbers)
+   (map #(map str/trim %))
+   (map cols->maps)
+   (map fix-date)
+   (map fix-numbers)
    latest-daily
    ammend-changes
    (filter has-changes?)
-   (pmap (partial insert-day! ds))
+   (map (partial insert-day! ds))
    doall
    count))
 
@@ -114,19 +114,19 @@
 (defn na-fields
   "replace empty strings with N/A"
   [r]
-  (pmap (fn [v] (if (and (string? v) (str/blank? v)) "N/A" v)) r))
+  (map (fn [v] (if (and (string? v) (str/blank? v)) "N/A" v)) r))
 
 (defn load-dim-location! [ds]
   (let [existing (->> ds
                       dim-locations
-                      (pmap rest)
+                      (map rest)
                       set)]
     (->>
      (distinct-staged-locations ds)
-     (pmap vals)
-     (pmap na-fields)
+     (map vals)
+     (map na-fields)
      (filter (complement existing))
-     (pmap (partial insert-dim-location! ds))
+     (map (partial insert-dim-location! ds))
      doall
      count)))
 
@@ -151,13 +151,13 @@
       :day_of_week day-of-week})))
 
 (defn load-dim-date! [ds]
-  (let [existing (->> ds dim-dates (pmap rest) set)]
+  (let [existing (->> ds dim-dates (map rest) set)]
     (->>
      (distinct-staged-dates ds)
-     (pmap vals)
-     (pmap na-fields)
+     (map vals)
+     (map na-fields)
      (filter (complement existing))
-     (pmap (partial insert-dim-date! ds))
+     (map (partial insert-dim-date! ds))
      doall
      count)))
 
@@ -183,7 +183,7 @@
     :recovery_change recovery-change}))
 
 (defn fact-days [ds]
-  (pmap
+  (map
    vals
    (jdbc/execute!
     ds
@@ -217,17 +217,17 @@ from
   (let [existing (->> ds
                       fact-days
                       set)
-        date-lookup (->> (dim-dates ds) (pmap vals) (pmap (partial take 2)) dim->lookup)
+        date-lookup (->> (dim-dates ds) (map vals) (map (partial take 2)) dim->lookup)
 
-        location-lookup (dim->lookup (pmap vals (dim-locations ds)))]
+        location-lookup (dim->lookup (map vals (dim-locations ds)))]
     (->>
      ds
      staged-data
-     (pmap vals)
-     (pmap na-fields)
-     (pmap (partial vals->dims date-lookup location-lookup))
+     (map vals)
+     (map na-fields)
+     (map (partial vals->dims date-lookup location-lookup))
      (filter (complement existing))
-     (pmap (partial insert-fact-day! ds))
+     (map (partial insert-fact-day! ds))
      doall
      count)))
 

@@ -31,7 +31,7 @@
        io/file
        .list
        (filter (partial re-matches #".*\.csv"))
-       (pmap
+       (map
         (comp
          rest
          csv/read-csv

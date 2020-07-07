@@ -50,17 +50,20 @@
     (do
       (println "staging data")
       (create-stage! ds)
-      (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+      (time
+        (stage-data!
+          ds
+          "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"))
 
       (println "loading dimensions")
       (create-dims! ds)
-      (load-dim-location! ds)
-      (load-dim-date! ds)
+      (time (load-dim-location! ds))
+      (time (load-dim-date! ds))
 
       (println "loading facts")
       (drop-fact-day! ds)
       (create-fact-day! ds)
-      (load-fact-day! ds))
+      (time (load-fact-day! ds)))
     (= "query" action)
     (let [[country state county] args]
       (println "querying for" country state county)
@@ -131,7 +134,7 @@
 
   (->>
    (deaths-by-country ds)
-   (pmap vals)
+   (map vals)
    (map prn))
 
   nil)
