@@ -88,10 +88,7 @@
   (->>
    input-dir
    read-csv
-   (map #(map str/trim %))
-   (map cols->maps)
-   (map fix-date)
-   (map fix-numbers)
+   (pmap (comp fix-numbers fix-date cols->maps #(map str/trim %)))
    latest-daily
    ammend-changes
    (filter has-changes?)
@@ -123,8 +120,7 @@
                       set)]
     (->>
      (distinct-staged-locations ds)
-     (map vals)
-     (map na-fields)
+     (map (comp na-fields vals))
      (filter (complement existing))
      (map (partial insert-dim-location! ds))
      doall
@@ -154,8 +150,7 @@
   (let [existing (->> ds dim-dates (map rest) set)]
     (->>
      (distinct-staged-dates ds)
-     (map vals)
-     (map na-fields)
+     (map (comp na-fields vals))
      (filter (complement existing))
      (map (partial insert-dim-date! ds))
      doall
@@ -217,15 +212,16 @@ from
   (let [existing (->> ds
                       fact-days
                       set)
-        date-lookup (->> (dim-dates ds) (map vals) (map (partial take 2)) dim->lookup)
+        date-lookup (->>
+                      (dim-dates ds)
+                      (map (comp (partial take 2) vals))
+                      dim->lookup)
 
         location-lookup (dim->lookup (map vals (dim-locations ds)))]
     (->>
      ds
      staged-data
-     (map vals)
-     (map na-fields)
-     (map (partial vals->dims date-lookup location-lookup))
+     (map (comp (partial vals->dims date-lookup location-lookup) na-fields vals))
      (filter (complement existing))
      (map (partial insert-fact-day! ds))
      doall
