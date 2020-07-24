@@ -55,7 +55,7 @@
         (time
           (stage-data!
             con 
-            "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"))
+            (first args)))
 
         (println "loading dimensions")
         (create-dims! con)
