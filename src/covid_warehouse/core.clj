@@ -62,4 +62,9 @@
 
   (-main "query" "US" "Pennsylvania" "Lancaster")
 
+  (let [[country state county] ["US" "Pennsylvania" "Lancaster"]
+        con ds
+        series (map shorten-keys (dw-series con country state county))]
+    (report series))
+
   nil)
