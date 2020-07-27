@@ -1,47 +1,28 @@
 (ns covid-warehouse.core
   (:gen-class)
-  (:require [java-time :as t]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
+            [covid-warehouse.db :refer :all]
+            [covid-warehouse.writer :refer :all]
+            [java-time :as t]
             [next.jdbc :as jdbc]
-            [covid-warehouse.db :refer :all]))
+            [clojure.java.io :as io]))
 
 (defn dw-series [ds country state county]
   (cond
     (nil? county)
     (->>
      (dw-series-by-state ds country state)
-     (map
-      (comp
-       println
-       (partial str/join " ")
-       (juxt
-        :DIM_DATE/YEAR
-        :DIM_DATE/MONTH
-        :DIM_DATE/DAY_OF_MONTH
-        :DIM_LOCATION/COUNTRY
-        :DIM_LOCATION/STATE
-        :CASE_CHANGE
-        :DEATH_CHANGE
-        :RECOVERY_CHANGE)))
      doall)
     :else
     (->>
      (dw-series-by-county ds country state county)
-     (map
-      (comp
-       println
-       (partial str/join " ")
-       (juxt
-        :DIM_DATE/YEAR
-        :DIM_DATE/MONTH
-        :DIM_DATE/DAY_OF_MONTH
-        :DIM_LOCATION/COUNTRY
-        :DIM_LOCATION/STATE
-        :DIM_LOCATION/COUNTY
-        :FACT_DAY/CASE_CHANGE
-        :FACT_DAY/DEATH_CHANGE
-        :FACT_DAY/RECOVERY_CHANGE)))
      doall)))
+
+(def print-day
+  (comp
+   println
+   (partial str/join " ")
+   (juxt :date :country :state :county :case-change :death-change :recovery-change)))
 
 (defn -main
   [action & args]
@@ -50,93 +31,35 @@
     (cond
       (= "load" action)
       (do
-        (println "staging data")
         (create-stage! con)
-        (time
-          (stage-data!
-            con 
-            (first args)))
+        (stage-data!
+         con
+         (first args))
 
-        (println "loading dimensions")
         (create-dims! con)
-        (time (load-dim-location! con))
-        (time (load-dim-date! con))
+        (load-dim-location! con)
+        (load-dim-date! con)
 
-        (println "loading facts")
         (drop-fact-day! con)
         (create-fact-day! con)
-        (time (load-fact-day! con)))
+        (load-fact-day! con))
       (= "query" action)
-      (let [[country state county] args]
-        (println "querying for" country state county)
-        (dw-series con country state county)
-        (println "totals")
+      (let [[country state county] args
+            series (map shorten-keys (dw-series con country state county))]
+        (doall (map print-day series))
+        (spit (str "output/" country "-" state "-" county ".html") (report series))
+        (->>
         (cond
-          (nil? county)
-          (->>
-            (dw-sums-by-state con country state)
-            (map (comp println (partial str/join " ") vals))
-            doall)
-          :else
-          (->>
-            (dw-sums-by-county con country state county)
-            (map (comp println (partial str/join " ") vals))
-            doall))))))
+          (nil? county) (dw-sums-by-state con country state)
+          :else (dw-sums-by-county con country state county))
+          (map (comp println (partial str/join " ") vals))
+           doall)))))
 
 (comment
-  (-main)
+  (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
-  (create-stage! ds)
+  (-main "query" "US" "Pennsylvania")
 
-  (time (stage-data! ds "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"))
-
-  (create-dims! ds)
-
-  (time (load-dim-location! ds))
-
-  (time (load-dim-date! ds))
-
-  (dim-locations ds)
-
-  (dim-dates ds)
-
-  (drop-fact-day! ds)
-
-  (create-fact-day! ds)
-
-  (time (load-fact-day! ds))
-
-  (take 20 (fact-days ds))
-
-  (count (fact-days ds))
-
-  (take 20 (map :date (staged-data ds)))
-
-  (dim->lookup (map (partial take 2) (dim-dates ds)))
-
-  (t/local-date (t/java-date) "UTC")
-
-  (map
-   (comp prn vals)
-   (cases-by-window ds "US" "Pennsylvania" (t/local-date) 14))
-
-  (map
-   (comp
-    prn
-    (juxt
-     :DIM_DATE/YEAR
-     :DIM_DATE/MONTH
-     :DIM_DATE/DAY_OF_MONTH
-     :DIM_LOCATION/COUNTRY
-     :DIM_LOCATION/STATE
-     :DIM_LOCATION/COUNTY
-     :FACT_DAY/CASE_CHANGE
-     :FACT_DAY/DEATH_CHANGE))
-   (dw-series-by-county ds "US" "Pennsylvania" "Lancaster"))
-
-  (->>
-   (deaths-by-country ds)
-   (map vals)
-   (map prn))
+  (-main "query" "US" "Pennsylvania" "Lancaster")
 
   nil)

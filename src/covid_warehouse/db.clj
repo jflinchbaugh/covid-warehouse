@@ -1,11 +1,11 @@
 (ns covid-warehouse.db
-  (:require [java-time :as t]
-            [clojure.string :as str]
-            [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]
-            [hugsql.core :as hugsql]
+  (:require [clojure.string :as str]
+            [covid-warehouse.reader :refer :all]
             [hugsql.adapter.next-jdbc :as adapter]
-            [covid-warehouse.reader :refer :all]))
+            [hugsql.core :as hugsql]
+            [java-time :as t]
+            [next.jdbc :as jdbc]
+            [next.jdbc.sql :as sql]))
 
 ;; regular SQL functions
 (hugsql/def-db-fns "db/covid-warehouse.sql"
@@ -410,3 +410,12 @@ group by
   , l.state"
      country
      state]))
+
+(defn kebab [s] (str/replace s #"_" "-"))
+
+(defn shorten-keys
+  [m]
+  (reduce-kv
+    (fn [m k v] (assoc m ((comp keyword kebab str/lower-case name) k) v))
+    {}
+    m))
