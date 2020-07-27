@@ -24,6 +24,9 @@
    (partial str/join " ")
    (juxt :date :country :state :county :case-change :death-change :recovery-change)))
 
+(defn file-name [& lst]
+  (str/replace (str/trim (str/join " " lst)) #" " "-"))
+
 (defn -main
   [action & args]
 
@@ -47,7 +50,7 @@
       (let [[country state county] args
             series (map shorten-keys (dw-series con country state county))]
         (doall (map print-day series))
-        (spit (str "output/" country "-" state "-" county ".html") (report series))
+        (spit (str "output/" (file-name country state county) ".html") (report series))
         (->>
         (cond
           (nil? county) (dw-sums-by-state con country state)
@@ -59,6 +62,8 @@
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
   (-main "query" "US" "Pennsylvania")
+
+  (-main "query" "US" "New York")
 
   (-main "query" "US" "Pennsylvania" "Lancaster")
 
