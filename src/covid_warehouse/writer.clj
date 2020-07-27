@@ -11,7 +11,6 @@
 (defn report [days]
   (let [title (str/join " " ((juxt :country :state :county) (first days)))]
     (str
-      (p/xml-declaration "utf-8")
       (p/html5
         [:head
          [:title title]]
