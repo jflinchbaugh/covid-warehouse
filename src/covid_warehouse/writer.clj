@@ -5,8 +5,9 @@
 
 (defn day-row [day]
   [:tr
-   (map #(-> [:td {:class %} %])
-    ((juxt :date :case-change :death-change) day))])
+   [:td.date (:date day)]
+   [:td.case-change (:case-change day)]
+   [:td.death-change (:death-change day)]])
 
 (defn report [days]
   (let [title (str/join " " ((juxt :country :state :county) (first days)))]
