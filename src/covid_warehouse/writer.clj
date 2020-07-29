@@ -1,6 +1,7 @@
 (ns covid-warehouse.writer
   (:require [hiccup.core :as h]
             [hiccup.page :as p]
+            [hiccup.element :as e]
             [clojure.string :as str]))
 
 (defn day-row [day]
@@ -26,6 +27,26 @@
           [:tbody
            (map day-row days)]]]))))
 
+(defn file-name [& lst]
+  (str/replace (str/trim (str/join " " lst)) #" " "-"))
+
+(defn html-file-name [f]
+  (str f ".html"))
+
+(defn index-line [place]
+  [:li [:a {:href (html-file-name (apply file-name place))} (str/join " " place)]])
+
+(defn index-file [places]
+  (p/html5 {:lang "en"}
+    [:head
+     [:title "COVID Data"]]
+    [:body
+     [:h1 "COVID Data"]
+     [:ul
+      (doall (map index-line places))]]))
+
 (comment
+
+  (index-line ["US" "Pennsylvania"])
 
   nil)

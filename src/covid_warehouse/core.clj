@@ -24,15 +24,12 @@
    (partial str/join " ")
    (juxt :date :country :state :county :case-change :death-change :recovery-change)))
 
-(defn file-name [& lst]
-  (str/replace (str/trim (str/join " " lst)) #" " "-"))
-
 (defn load-db [con path]
   (do
     (create-stage! con)
     (stage-data!
-      con
-      path)
+     con
+     path)
 
     (create-dims! con)
     (load-dim-location! con)
@@ -46,13 +43,24 @@
   (let [[country state county] args
         series (map shorten-keys (dw-series con country state county))]
     (doall (map print-day series))
-    (spit (str "output/" (file-name country state county) ".html") (report series))
+    (spit
+      (str "output/" (html-file-name (file-name country state county)))
+      (report series))
     (->>
-      (cond
-        (nil? county) (dw-sums-by-state con country state)
-        :else (dw-sums-by-county con country state county))
-      (map (comp println (partial str/join " ") vals))
-      doall)))
+     (cond
+       (nil? county) (dw-sums-by-state con country state)
+       :else (dw-sums-by-county con country state county))
+     (map (comp println (partial str/join " ") vals))
+     doall)))
+
+(def all-places [["US" "California"]
+                 ["US" "New York"]
+                 ["US" "New Jersey"]
+                 ["US" "Delaware"]
+                 ["US" "Florida"]
+                 ["US" "Pennsylvania"]
+                 ["US" "Pennsylvania" "York"]
+                 ["US" "Pennsylvania" "Lancaster"]])
 
 (defn -main
   [action & args]
@@ -66,16 +74,18 @@
       (= "all" action)
       (do
         (load-db con (first args))
-        (query con ["US" "California"])
-        (query con ["US" "New York"])
-        (query con ["US" "Florida"])
-        (query con ["US" "Pennsylvania"])
-        (query con ["US" "Pennsylvania" "York"])
-        (query con ["US" "Pennsylvania" "Lancaster"])
-        ))))
+        (doall
+         (for [place all-places]
+           (query con place)))
+        (spit
+          "output/index.html"
+          (index-file all-places)
+          )))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+
+  (-main "all" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
   (-main "query" "US" "Pennsylvania")
 
