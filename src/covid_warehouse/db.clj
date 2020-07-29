@@ -319,7 +319,7 @@ where
   and l.state = ?
   and l.county = ?
 order by
-  d.date
+  d.date desc
 "
     country
     state county]))
@@ -354,7 +354,7 @@ group by
   , l.country
   , l.state
 order by
-  d.date
+  d.date desc
 "
      country
      state]))
