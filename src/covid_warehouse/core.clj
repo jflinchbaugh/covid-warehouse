@@ -42,16 +42,9 @@
 (defn query [con args]
   (let [[country state county] args
         series (map shorten-keys (dw-series con country state county))]
-    (doall (map print-day series))
     (spit
       (str "output/" (html-file-name (file-name country state county)))
-      (report series))
-    (->>
-     (cond
-       (nil? county) (dw-sums-by-state con country state)
-       :else (dw-sums-by-county con country state county))
-     (map (comp println (partial str/join " ") vals))
-     doall)))
+      (report series))))
 
 (def all-places [["US" "California"]
                  ["US" "New York"]

@@ -4,11 +4,19 @@
             [hiccup.element :as e]
             [clojure.string :as str]))
 
-(defn day-row [day]
-  [:tr
-   [:td.date (:date day)]
-   [:td.case-change (:case-change day)]
-   [:td.death-change (:death-change day)]])
+(defn day-row [case-line death-line day]
+  (let [cases (:case-change day)
+        deaths (:death-change day)]
+    [:tr
+     [:td.date (:date day)]
+     [:td.death-change (:death-change day)]
+     [:td.case-change (:case-change day)]
+     [:td.death-graph (death-line deaths)]
+     [:td.case-graph (case-line cases)]]))
+
+(defn graph-line [ch fit-size max-count count]
+  (let [c (int (* fit-size (/ count max-count)))]
+    (apply str (repeat c ch))))
 
 (defn report [days]
   (let [title (str/join " " ((juxt :country :state :county) (first days)))]
@@ -22,10 +30,17 @@
           [:thead
            [:tr
             [:th.date "Date"]
+            [:th.death-change "Deaths"]
             [:th.case-change "Cases"]
-            [:th.death-change "Deaths"]]]
+            [:th.death-graph "Deaths"]
+            [:th.case-graph "Cases"]]]
           [:tbody
-           (map day-row days)]]]))))
+           (let [max-cases (apply max (map :case-change days))
+                 max-deaths (apply max (map :death-change days))
+                 case-line (partial graph-line "!" 60 max-cases)
+                 death-line (partial graph-line "!" 30 max-deaths)
+                 ]
+             (map (partial day-row case-line death-line) days))]]]))))
 
 (defn file-name [& lst]
   (str/replace (str/trim (str/join " " lst)) #" " "-"))
