@@ -2,6 +2,7 @@
 /classes
 /checkouts
 /output
+/data
 profiles.clj
 pom.xml
 pom.xml.asc
