@@ -37,8 +37,8 @@
           [:tbody
            (let [max-cases (apply max (map :case-change days))
                  max-deaths (apply max (map :death-change days))
-                 case-line (partial graph-line "!" 60 max-cases)
-                 death-line (partial graph-line "!" 30 max-deaths)
+                 case-line (partial graph-line "!" 75 max-cases)
+                 death-line (partial graph-line "!" 50 max-deaths)
                  ]
              (map (partial day-row case-line death-line) days))]]]))))
 
