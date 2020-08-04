@@ -279,3 +279,15 @@ where
   and l.county = :county
 order by
   d.date desc
+
+-- :name fact-days
+-- :command :query
+-- :result :many
+select
+  date_key
+  , location_key
+  , case_change
+  , death_change
+  , recovery_change
+from
+  fact_day

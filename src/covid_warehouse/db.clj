@@ -177,21 +177,6 @@
     :death_change death-change
     :recovery_change recovery-change}))
 
-(defn fact-days [ds]
-  (map
-   vals
-   (jdbc/execute!
-    ds
-    ["
-select
-  date_key
-  , location_key
-  , case_change
-  , death_change
-  , recovery_change
-from
-  fact_day"])))
-
 (defn dim->lookup [dim]
   (reduce
    (fn [lookup row] (assoc lookup (rest row) (first row)))
@@ -211,6 +196,7 @@ from
 (defn load-fact-day! [ds]
   (let [existing (->> ds
                       fact-days
+                      (map vals)
                       set)
         date-lookup (->>
                      (dim-dates ds)
