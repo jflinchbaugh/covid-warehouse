@@ -128,3 +128,154 @@ from
   covid_day
 order by
   date
+
+
+-- :name dw-sums-by-country
+-- :command :query
+-- :result :many
+select
+  l.country
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = :country
+group by
+  l.country
+
+-- :name dw-sums-by-state
+-- :command :query
+-- :result :many
+select
+  l.country
+  , l.state
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = :country
+  and l.state = :state
+group by
+  l.country
+  , l.state
+
+
+-- :name dw-sums-by-county
+-- :command :query
+-- :result :many
+select
+  l.country
+  , l.state
+  , l.county
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = :country
+  and l.state = :state
+  and l.county = :county
+group by
+  l.country
+  , l.state
+  , l.county
+
+
+-- :name dw-series-by-country
+-- :command :query
+-- :result :many
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = :country
+group by
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+order by
+  d.date desc
+
+-- :name dw-series-by-state
+-- :command :query
+-- :result :many
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = :country
+  and l.state = :state
+group by
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+order by
+  d.date desc
+
+-- :name dw-series-by-county
+-- :command :query
+-- :result :many
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , l.county
+  , f.case_change
+  , f.death_change
+  , f.recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = :country
+  and l.state = :state
+  and l.county = :county
+order by
+  d.date desc

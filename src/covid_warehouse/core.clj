@@ -10,14 +10,14 @@
 (defn dw-series [ds country state county]
   (cond
     (and (nil? state) (nil? county))
-    (dw-series-by-country ds country)
+    (dw-series-by-country ds {:country country})
     (nil? county)
     (->>
-     (dw-series-by-state ds country state)
+      (dw-series-by-state ds {:country country :state state})
      doall)
     :else
     (->>
-     (dw-series-by-county ds country state county)
+      (dw-series-by-county ds {:country country :state state :county county})
      doall)))
 
 (def print-day
@@ -86,6 +86,8 @@
   (-main "query" "US" "Pennsylvania")
 
   (-main "query" "US" "New York")
+
+  (-main "query" "US")
 
   (-main "query" "US" "Pennsylvania" "Lancaster")
 

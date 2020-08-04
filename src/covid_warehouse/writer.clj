@@ -19,7 +19,7 @@
     (apply str (repeat c ch))))
 
 (defn report [days]
-  (let [title (str/join " " ((juxt :country :state :county) (first days)))]
+  (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))]
     (str
       (p/html5 {:lang "en"}
         [:head
