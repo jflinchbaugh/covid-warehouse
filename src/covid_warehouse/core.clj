@@ -9,6 +9,8 @@
 
 (defn dw-series [ds country state county]
   (cond
+    (and (nil? state) (nil? county))
+    (dw-series-by-country ds country)
     (nil? county)
     (->>
      (dw-series-by-state ds country state)
@@ -46,7 +48,8 @@
       (str "output/" (html-file-name (file-name country state county)))
       (report series))))
 
-(def all-places [["US" "California"]
+(def all-places [["US"]
+                 ["US" "California"]
                  ["US" "New York"]
                  ["US" "New Jersey"]
                  ["US" "Delaware"]

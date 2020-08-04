@@ -213,9 +213,9 @@ from
                       fact-days
                       set)
         date-lookup (->>
-                      (dim-dates ds)
-                      (map (comp (partial take 2) vals))
-                      dim->lookup)
+                     (dim-dates ds)
+                     (map (comp (partial take 2) vals))
+                     dim->lookup)
 
         location-lookup (dim->lookup (map vals (dim-locations ds)))]
     (->>
@@ -326,8 +326,8 @@ order by
 
 (defn dw-series-by-state [ds country state]
   (jdbc/execute!
-    ds
-    ["
+   ds
+   ["
 select
   d.date
   , d.year
@@ -356,8 +356,39 @@ group by
 order by
   d.date desc
 "
-     country
-     state]))
+    country
+    state]))
+
+(defn dw-series-by-country [ds country]
+  (jdbc/execute!
+    ds
+    ["
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+group by
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+order by
+  d.date desc
+"
+     country]))
 
 (defn dw-sums-by-county [ds country state county]
   (jdbc/execute!
@@ -389,8 +420,8 @@ group by
 
 (defn dw-sums-by-state [ds country state]
   (jdbc/execute!
-    ds
-    ["
+   ds
+   ["
 select
   l.country
   , l.state
@@ -408,14 +439,34 @@ where
 group by
   l.country
   , l.state"
-     country
-     state]))
+    country
+    state]))
+
+(defn dw-sums-by-country [ds country]
+  (jdbc/execute!
+   ds
+   ["
+select
+  l.country
+  , sum(f.case_change) as case_change
+  , sum(f.death_change) as death_change
+  , sum(f.recovery_change) as recovery_change
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+where
+  l.country = ?
+group by
+  l.country"
+    country]))
 
 (defn kebab [s] (str/replace s #"_" "-"))
 
 (defn shorten-keys
   [m]
   (reduce-kv
-    (fn [m k v] (assoc m ((comp keyword kebab str/lower-case name) k) v))
-    {}
-    m))
+   (fn [m k v] (assoc m ((comp keyword kebab str/lower-case name) k) v))
+   {}
+   m))
