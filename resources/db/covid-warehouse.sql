@@ -291,3 +291,111 @@ select
   , recovery_change
 from
   fact_day
+
+-- :name dw-rolling-series-by-county
+-- :command :query
+-- :result :many
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , l.county
+  , sum(f.case_change) / 3 as case_change
+  , sum(f.death_change) / 3 as death_change
+  , sum(hf.case_change) / 3 as case_change_history
+  , sum(hf.death_change) / 3 as death_change_history
+  , sum(hf.recovery_change) / 3 as recovery_change
+  , sum(hf.recovery_change) / 3 as recovery_change_history
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+join dim_date hd
+  on hd.date > dateadd(DAY, -3, d.date) and hd.date <= d.date
+join fact_day hf
+  on hf.date_key = hd.date_key
+  and hf.location_key = l.location_key
+where
+  l.country = :country
+  and l.state = :state
+  and l.county = :county
+group by
+  d.date
+  , l.country
+  , l.state
+  , l.county
+order by
+  d.date desc
+
+-- :name dw-rolling-series-by-state
+-- :command :query
+-- :result :many
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , l.state
+  , sum(f.case_change) / 3 as case_change
+  , sum(hf.case_change) / 3 as case_change_history
+  , sum(f.death_change) / 3 as death_change
+  , sum(hf.death_change) / 3 as death_change_history
+  , sum(f.recovery_change) / 3 as recovery_change
+  , sum(hf.recovery_change) / 3 as recovery_change_history
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+join dim_date hd
+  on hd.date > dateadd(DAY, -3, d.date) and hd.date <= d.date
+join fact_day hf
+  on hf.date_key = hd.date_key
+  and hf.location_key = l.location_key
+where
+  l.country = :country
+  and l.state = :state
+group by
+  d.date
+  , l.country
+  , l.state
+order by
+  d.date desc
+
+-- :name dw-rolling-series-by-country
+-- :command :query
+-- :result :many
+select
+  d.date
+  , d.year
+  , d.month
+  , d.day_of_month
+  , l.country
+  , sum(f.case_change) / 3 as case_change
+  , sum(hf.case_change) / 3 as case_change_history
+  , sum(f.death_change) / 3 as death_change
+  , sum(hf.death_change) / 3 as death_change_history
+  , sum(f.recovery_change) / 3 as recovery_change
+  , sum(hf.recovery_change) / 3 as recovery_change_history
+from fact_day f
+join dim_date d
+  on d.date_key = f.date_key
+join dim_location l
+  on l.location_key = f.location_key
+join dim_date hd
+  on hd.date > dateadd(DAY, -3, d.date) and hd.date <= d.date
+join fact_day hf
+  on hf.date_key = hd.date_key
+  and hf.location_key = l.location_key
+where
+  l.country = :country
+group by
+  d.date
+  , l.country
+order by
+  d.date desc
