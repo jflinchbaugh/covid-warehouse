@@ -25,7 +25,8 @@
     (str
       (p/html5 {:lang "en"}
         [:head
-         [:title title]]
+         [:title title]
+         [:link {:rel "stylesheet" :href "style.css"}]]
         [:body
          [:h1 title]
          [:table
@@ -56,7 +57,8 @@
 (defn index-file [places]
   (p/html5 {:lang "en"}
     [:head
-     [:title "COVID Data"]]
+     [:title "COVID Data"]
+     [:link {:rel "stylesheet" :href "style.css"}]]
     [:body
      [:h1 "COVID Data"]
      [:ul

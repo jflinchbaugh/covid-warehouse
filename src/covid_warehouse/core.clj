@@ -58,6 +58,9 @@
                  ["US" "Pennsylvania" "York"]
                  ["US" "Pennsylvania" "Lancaster"]])
 
+(defn copy-style []
+  (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
+
 (defn -main
   [action & args]
 
@@ -76,7 +79,8 @@
         (spit
           "output/index.html"
           (index-file all-places)
-          )))))
+          )
+        (copy-style)))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")

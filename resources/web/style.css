@@ -1,0 +1,12 @@
+.date, .death-graph, .case-graph {
+    text-align: left;
+}
+
+.death-change, .case-change {
+    text-align: right;
+}
+
+td, th {
+    padding-left: 1ex;
+    padding-right: 1ex;
+}
