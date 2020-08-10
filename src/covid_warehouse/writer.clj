@@ -18,7 +18,7 @@
 
 (defn graph-line [ch fit-size max-count count]
   (let [c (int (* fit-size (/ count max-count)))]
-    (apply str (repeat c ch))))
+    (str/join (repeat c ch))))
 
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))]

@@ -8,17 +8,16 @@
             [clojure.java.io :as io]))
 
 (defn dw-series [ds country state county]
-  (cond
-    (and (nil? state) (nil? county))
-    (dw-rolling-series-by-country ds {:country country})
-    (nil? county)
-    (->>
+  (doall 
+    (cond
+      (and (nil? state) (nil? county))
+      (dw-rolling-series-by-country ds {:country country})
+
+      (nil? county)
       (dw-rolling-series-by-state ds {:country country :state state})
-     doall)
-    :else
-    (->>
-      (dw-rolling-series-by-county ds {:country country :state state :county county})
-     doall)))
+
+      :else
+      (dw-rolling-series-by-county ds {:country country :state state :county county}))))
 
 (def print-day
   (comp
