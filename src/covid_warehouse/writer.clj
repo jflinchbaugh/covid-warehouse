@@ -63,9 +63,3 @@
      [:h1 "COVID Data"]
      [:ul
       (doall (map index-line places))]]))
-
-(comment
-
-  (index-line ["US" "Pennsylvania"])
-
-  nil)
