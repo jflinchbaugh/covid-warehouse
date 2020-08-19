@@ -20,6 +20,14 @@
   (let [c (int (* fit-size (/ count max-count)))]
     (str/join (repeat c ch))))
 
+(defn total-line [days]
+  [:tr
+   [:td.date "Total"]
+   [:td.death-change (reduce + 0 (map :death-change days)) ]
+   [:td.case-change (reduce + 0 (map :case-change days))]
+   [:td.death-graph ""]
+   [:td.case-graph ""]])
+
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))]
     (str
@@ -38,6 +46,7 @@
             [:th.death-graph "Deaths"]
             [:th.case-graph "Cases"]]]
           [:tbody
+           (total-line days)
            (let [max-cases (apply max (map :case-change-history days))
                  max-deaths (apply max (map :death-change-history days))
                  case-line (partial graph-line "!" 75 max-cases)
