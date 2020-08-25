@@ -207,10 +207,10 @@ select
   , sum(f.case_change) as case_change
   , sum(f.death_change) as death_change
   , sum(f.recovery_change) as recovery_change
-from fact_day f
-join dim_date d
+from dim_date d
+left join fact_day f
   on d.date_key = f.date_key
-join dim_location l
+left join dim_location l
   on l.location_key = f.location_key
 where
   l.country = :country
@@ -236,10 +236,10 @@ select
   , sum(f.case_change) as case_change
   , sum(f.death_change) as death_change
   , sum(f.recovery_change) as recovery_change
-from fact_day f
-join dim_date d
+from dim_date d
+left join fact_day f
   on d.date_key = f.date_key
-join dim_location l
+left join dim_location l
   on l.location_key = f.location_key
 where
   l.country = :country
@@ -268,10 +268,10 @@ select
   , f.case_change
   , f.death_change
   , f.recovery_change
-from fact_day f
-join dim_date d
+from dim_date d
+left join fact_day f
   on d.date_key = f.date_key
-join dim_location l
+left join dim_location l
   on l.location_key = f.location_key
 where
   l.country = :country
@@ -309,14 +309,14 @@ select
   , sum(hf.death_change) / 3 as death_change_history
   , sum(hf.recovery_change) / 3 as recovery_change
   , sum(hf.recovery_change) / 3 as recovery_change_history
-from fact_day f
-join dim_date d
+from dim_date d
+left join fact_day f
   on d.date_key = f.date_key
-join dim_location l
+left join dim_location l
   on l.location_key = f.location_key
-join dim_date hd
+left join dim_date hd
   on hd.date > dateadd(DAY, -3, d.date) and hd.date <= d.date
-join fact_day hf
+left join fact_day hf
   on hf.date_key = hd.date_key
   and hf.location_key = l.location_key
 where
@@ -347,14 +347,14 @@ select
   , sum(hf.death_change) / 3 as death_change_history
   , sum(f.recovery_change) / 3 as recovery_change
   , sum(hf.recovery_change) / 3 as recovery_change_history
-from fact_day f
-join dim_date d
+from dim_date d
+left join fact_day f
   on d.date_key = f.date_key
-join dim_location l
+left join dim_location l
   on l.location_key = f.location_key
-join dim_date hd
+left join dim_date hd
   on hd.date > dateadd(DAY, -3, d.date) and hd.date <= d.date
-join fact_day hf
+left join fact_day hf
   on hf.date_key = hd.date_key
   and hf.location_key = l.location_key
 where
@@ -382,14 +382,14 @@ select
   , sum(hf.death_change) / 3 as death_change_history
   , sum(f.recovery_change) / 3 as recovery_change
   , sum(hf.recovery_change) / 3 as recovery_change_history
-from fact_day f
-join dim_date d
+from dim_date d
+left join fact_day f
   on d.date_key = f.date_key
-join dim_location l
+left join dim_location l
   on l.location_key = f.location_key
-join dim_date hd
+left join dim_date hd
   on hd.date > dateadd(DAY, -3, d.date) and hd.date <= d.date
-join fact_day hf
+left join fact_day hf
   on hf.date_key = hd.date_key
   and hf.location_key = l.location_key
 where
@@ -399,3 +399,5 @@ group by
   , l.country
 order by
   d.date desc
+
+

@@ -225,6 +225,21 @@
    {}
    m))
 
+(defn diff-queries
+  "diff results of 2 query functions"
+  [q1 q2 params tf]
+  (let [s (map tf (q1 ds params))
+        r (map tf (q2 ds params))]
+    (filter (fn [[sc rc]] (not= sc rc)) (partition 2 (interleave s r)))))
+
 (comment
+
+  (diff-queries
+    dw-series-by-county
+    dw-rolling-series-by-county
+    {:country "US" :state "Pennsylvania" :county "York"}
+    (juxt :date :case_change))
+
+  (dw-sums-by-county ds {:country "US" :state "Pennsylvania" :county "Lancaster"})
 
   nil)
