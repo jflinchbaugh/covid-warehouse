@@ -213,9 +213,6 @@
      doall
      count)))
 
-(defn days-ago [days date]
-  (t/adjust date t/minus (t/days days)))
-
 (defn kebab [s] (str/replace s #"_" "-"))
 
 (defn shorten-keys
