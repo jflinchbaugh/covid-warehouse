@@ -146,10 +146,21 @@
       :day_of_month day-of-month
       :day_of_week day-of-week})))
 
+(defn pad-dates [cnt dates]
+  (let [prev-days (->> dates
+                       (sort-by :date)
+                       (take cnt)
+                       (map :date)
+                       (map #(t/local-date-time %))
+                       (map #(t/plus % (t/days (* -1 cnt))))
+                       (map t/sql-date))]
+    (concat [{:date (first prev-days)} {:date (second prev-days)}] dates)))
+
 (defn load-dim-date! [ds]
   (let [existing (->> ds dim-dates (map rest) set)]
     (->>
      (distinct-staged-dates ds)
+     (pad-dates 2)
      (map (comp na-fields vals))
      (filter (complement existing))
      (map (partial insert-dim-date! ds))
@@ -163,7 +174,6 @@
   (create-dim-date! ds))
 
 ;; facts
-
 
 (defn insert-fact-day!
   [ds
@@ -230,18 +240,6 @@
     (filter (fn [[sc rc]] (not= sc rc)) (partition 2 (interleave s r)))))
 
 (comment
-
-  (diff-queries
-    dw-series-by-county
-    dw-rolling-series-by-county
-    {:country "US" :state "Pennsylvania" :county "York"}
-    (juxt :date :case_change))
-
-  (diff-queries
-    dw-series-by-country
-    dw-rolling-series-by-country
-    {:country "US"}
-    (juxt :date :case_change :death_change))
 
   (dw-sums-by-county ds {:country "US" :state "Pennsylvania" :county "Lancaster"})
 

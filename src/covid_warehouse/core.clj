@@ -8,16 +8,16 @@
             [clojure.java.io :as io]))
 
 (defn dw-series [ds country state county]
-  (doall 
-    (cond
-      (and (nil? state) (nil? county))
-      (dw-rolling-series-by-country ds {:country country})
+  (doall
+   (cond
+     (and (nil? state) (nil? county))
+     (dw-rolling-series-by-country ds {:country country})
 
-      (nil? county)
-      (dw-rolling-series-by-state ds {:country country :state state})
+     (nil? county)
+     (dw-rolling-series-by-state ds {:country country :state state})
 
-      :else
-      (dw-rolling-series-by-county ds {:country country :state state :county county}))))
+     :else
+     (dw-rolling-series-by-county ds {:country country :state state :county county}))))
 
 (def print-day
   (comp
@@ -44,8 +44,8 @@
   (let [[country state county] args
         series (map shorten-keys (dw-series con country state county))]
     (spit
-      (str "output/" (html-file-name (file-name country state county)))
-      (report series))))
+     (str "output/" (html-file-name (file-name country state county)))
+     (report series))))
 
 (def all-places [["US"]
                  ["US" "California"]
@@ -76,9 +76,8 @@
          (for [place all-places]
            (query con place)))
         (spit
-          "output/index.html"
-          (index-file all-places)
-          )
+         "output/index.html"
+         (index-file all-places))
         (copy-style)))))
 
 (comment
@@ -98,5 +97,19 @@
         con ds
         series (map shorten-keys (dw-series con country state county))]
     (report series))
+
+  (diff-queries
+   dw-series-by-county
+   dw-rolling-series-by-county
+   {:country "US" :state "Pennsylvania" :county "York"}
+   (juxt :date :case_change))
+
+  (diff-queries
+   dw-series-by-country
+   dw-rolling-series-by-country
+   {:country "US"}
+   (juxt :date :case_change :death_change))
+
+  (jdbc/execute! ds ["select * from dim_date order by date"])
 
   nil)
