@@ -237,6 +237,12 @@
     {:country "US" :state "Pennsylvania" :county "York"}
     (juxt :date :case_change))
 
+  (diff-queries
+    dw-series-by-country
+    dw-rolling-series-by-country
+    {:country "US"}
+    (juxt :date :case_change :death_change))
+
   (dw-sums-by-county ds {:country "US" :state "Pennsylvania" :county "Lancaster"})
 
   nil)
