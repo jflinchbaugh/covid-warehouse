@@ -5,16 +5,16 @@
             [clojure.string :as str]))
 
 (defn day-row [case-line death-line day]
-  (let [cases (:case-change-history day)
-        deaths (:death-change-history day)
-        raw-cases (:case-change day)
-        raw-deaths (:death-change day)]
+  (let [case-change-history (:case-change-history day)
+        death-change-history (:death-change-history day)
+        cases (:case-change day)
+        deaths (:death-change day)]
     [:tr
      [:td.date (:date day)]
-     [:td.death-change (str deaths " (" raw-deaths ")")]
-     [:td.case-change (str cases " (" raw-cases ")")]
-     [:td.death-graph (death-line deaths)]
-     [:td.case-graph (case-line cases)]]))
+     [:td.death-change deaths]
+     [:td.case-change cases]
+     [:td.death-graph (death-line death-change-history)]
+     [:td.case-graph (case-line case-change-history)]]))
 
 (defn graph-line [ch fit-size max-count count]
   (let [c (int (* fit-size (/ count max-count)))]
