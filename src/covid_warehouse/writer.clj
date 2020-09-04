@@ -12,8 +12,8 @@
     [:tr
      [:td.date (:date day)]
      [:td.death-change deaths]
-     [:td.case-change cases]
      [:td.death-graph (death-line death-change-history)]
+     [:td.case-change cases]
      [:td.case-graph (case-line case-change-history)]]))
 
 (defn graph-line [ch fit-size max-count count]
@@ -24,8 +24,8 @@
   [:tr
    [:td.date "Total"]
    [:td.death-change (reduce + 0 (map :death-change days)) ]
-   [:td.case-change (reduce + 0 (map :case-change days))]
    [:td.death-graph ""]
+   [:td.case-change (reduce + 0 (map :case-change days))]
    [:td.case-graph ""]])
 
 (defn report [days]
@@ -42,8 +42,8 @@
            [:tr
             [:th.date "Date"]
             [:th.death-change "Deaths"]
-            [:th.case-change "Cases"]
             [:th.death-graph "Deaths"]
+            [:th.case-change "Cases"]
             [:th.case-graph "Cases"]]]
           [:tbody
            (total-line days)
