@@ -147,14 +147,14 @@
       :day_of_week day-of-week})))
 
 (defn pad-dates [cnt dates]
-  (let [prev-days (->> dates
-                       (sort-by :date)
-                       (take cnt)
-                       (map :date)
-                       (map #(t/local-date-time %))
-                       (map #(t/plus % (t/days (* -1 cnt))))
-                       (map t/sql-date))]
-    (concat [{:date (first prev-days)} {:date (second prev-days)}] dates)))
+  (if (empty? dates)
+    '()
+    (let [earliest (->> dates (sort-by :date) first :date t/local-date-time)
+          prev-days (->> (range (* -1 cnt) 0)
+                      (map #(t/plus earliest (t/days %)))
+                      (map t/sql-date)
+                      (map #(-> {:date %})))]
+      (concat prev-days dates))))
 
 (defn load-dim-date! [ds]
   (let [existing (->> ds dim-dates (map rest) set)]
