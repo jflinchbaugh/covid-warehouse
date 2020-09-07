@@ -8,8 +8,9 @@
   (let [case-change-history (:case-change-history day)
         death-change-history (:death-change-history day)
         cases (:case-change day)
-        deaths (:death-change day)]
-    [:tr
+        deaths (:death-change day)
+        any-neg? (some neg? [cases deaths])]
+    [(if any-neg? :tr.negative :tr)
      [:td.date (:date day)]
      [:td.death-change deaths]
      [:td.death-graph (death-line death-change-history)]
