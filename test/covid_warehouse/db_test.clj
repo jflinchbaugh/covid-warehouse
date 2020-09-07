@@ -7,6 +7,9 @@
   (testing "pad-dates"
     (is (empty? (pad-dates 1 [])))
     (is (=
+          [{:date (t/sql-date "2020-01-02")}]
+          (pad-dates 0 [{:date (t/sql-date "2020-01-02")}])))
+    (is (=
          [{:date (t/sql-date "2020-01-01")} {:date (t/sql-date "2020-01-02")}]
          (pad-dates 1 [{:date (t/sql-date "2020-01-02")}])))
     (is (=
