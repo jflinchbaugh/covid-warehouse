@@ -47,13 +47,19 @@
      (str "output/" (html-file-name (file-name country state county)))
      (report series))))
 
-(def all-places [["US"]
+(def all-places [["Canada"]
+                 ["Japan"]
+                 ["United Kingdom"]
+                 ["US"]
                  ["US" "California"]
                  ["US" "New York"]
                  ["US" "New Jersey"]
                  ["US" "Delaware"]
                  ["US" "Florida"]
                  ["US" "Pennsylvania"]
+                 ["US" "Pennsylvania" "Franklin"]
+                 ["US" "Pennsylvania" "Lehigh"]
+                 ["US" "Pennsylvania" "Philadelphia"]
                  ["US" "Pennsylvania" "York"]
                  ["US" "Pennsylvania" "Lancaster"]])
 
