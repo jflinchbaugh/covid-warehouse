@@ -37,6 +37,7 @@
          [:title title]
          [:link {:rel "stylesheet" :href "style.css"}]]
         [:body
+         [:a {:href "index.html"} "<< Back" ]
          [:h1 title]
          [:table
           [:thead
