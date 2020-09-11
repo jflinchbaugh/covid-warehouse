@@ -1,7 +1,8 @@
 (ns covid-warehouse.writer-test
   (:require [covid-warehouse.writer :refer :all]
             [clojure.test :as t]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [hiccup.util :as util]))
 
 (t/deftest test-graph-line
   (t/testing "graph-line"
@@ -30,9 +31,10 @@
 
 (t/deftest test-index-line
   (t/testing "index-line"
-    (t/is (= [:li [:a {:href ".html"} ""]] (index-line [])))
-    (t/is (= [:li [:a {:href "us-thing.html"} "us thing"]] (index-line ["us" "thing"])))
-    (t/is (= [:li [:a {:href "us-thing-other.html"} "us thing other"]]
+    (t/is (= [:li [:a {:href (util/to-uri ".html")} [""]]] (index-line [])))
+    (t/is (= [:li [:a {:href (util/to-uri "us-thing.html")} ["us thing"]]]
+            (index-line ["us" "thing"])))
+    (t/is (= [:li [:a {:href (util/to-uri "us-thing-other.html")} ["us thing other"]]]
              (index-line ["us" "thing" "other"])))))
 
 (t/deftest test-index-file

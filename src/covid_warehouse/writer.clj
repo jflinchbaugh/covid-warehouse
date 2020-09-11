@@ -35,9 +35,9 @@
       (p/html5 {:lang "en"}
         [:head
          [:title title]
-         [:link {:rel "stylesheet" :href "style.css"}]]
+         (p/include-css "style.css")]
         [:body
-         [:a {:href "index.html"} "<< Back" ]
+         (e/link-to "index.html" "<< Back")
          [:h1 title]
          [:table
           [:thead
@@ -63,13 +63,13 @@
   (str f ".html"))
 
 (defn index-line [place]
-  [:li [:a {:href (html-file-name (apply file-name place))} (str/join " " place)]])
+  [:li (e/link-to (html-file-name (apply file-name place)) (str/join " " place))])
 
 (defn index-file [places]
   (p/html5 {:lang "en"}
     [:head
      [:title "COVID Data"]
-     [:link {:rel "stylesheet" :href "style.css"}]]
+     (p/include-css "style.css")]
     [:body
      [:h1 "COVID Data"]
      [:ul
