@@ -92,7 +92,8 @@
     [:country]
     #(get {"UK" "United Kingdom"
           "Mainland China" "China"
-          "Taiwan" "Taiwan*"} % %)))
+          "Taiwan" "Taiwan*"
+           "South Korea" "Korea, South"} % %)))
 
 (defn stage-data! [ds input-dir]
   (->>
