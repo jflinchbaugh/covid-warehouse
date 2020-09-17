@@ -84,11 +84,21 @@
 (defn has-changes? [r]
   (not= [0 0 0] ((juxt :cases-change :deaths-change :recoveries-change) r)))
 
+(defn unify-countries
+  "unify historic names of countries"
+  [m]
+  (update-in
+    m
+    [:country]
+    #(get {"UK" "United Kingdom"
+          "Mainland China" "China"
+          "Taiwan" "Taiwan*"} % %)))
+
 (defn stage-data! [ds input-dir]
   (->>
    input-dir
    read-csv
-   (pmap (comp fix-numbers fix-date cols->maps #(map str/trim %)))
+   (pmap (comp unify-countries fix-numbers fix-date cols->maps #(map str/trim %)))
    latest-daily
    ammend-changes
    (filter has-changes?)
