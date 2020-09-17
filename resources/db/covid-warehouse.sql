@@ -66,8 +66,7 @@ create table fact_day (
   , case_change int
   , death_change int
   , recovery_change int
-  , unique (date_key, location_key))
-
+  , primary key (date_key, location_key))
 
 -- :name dim-dates
 -- :command :query
