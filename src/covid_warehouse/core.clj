@@ -66,14 +66,15 @@
 (defn all-places
   "list all the places we care to see"
   [con]
-  (apply concat
-    (pcalls 
-      #(map (juxt :country :state :county)
-        (distinct-counties-by-state-country con {:country "US" :state "Pennsylvania"}))
-      #(map (juxt :country :state)
-        (distinct-states-by-country con {:country "US"}))
-      #(map (juxt :country)
-        (distinct-countries con)))))
+  (sort
+    (apply concat
+      (pcalls 
+        #(map (juxt :country :state :county)
+           (distinct-counties-by-state-country con {:country "US" :state "Pennsylvania"}))
+        #(map (juxt :country :state)
+           (distinct-states-by-country con {:country "US"}))
+        #(map (juxt :country)
+           (distinct-countries con))))))
 
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
