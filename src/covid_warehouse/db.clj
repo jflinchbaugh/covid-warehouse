@@ -85,15 +85,15 @@
   (not= [0 0 0] ((juxt :cases-change :deaths-change :recoveries-change) r)))
 
 (defn unify-countries
-  "unify historic names of countries"
+  "unify historic names of countries. if nothing matches, then pass through."
   [m]
   (update-in
-    m
-    [:country]
-    #(get {"UK" "United Kingdom"
+   m
+   [:country]
+   #(get {"UK" "United Kingdom"
           "Mainland China" "China"
           "Taiwan" "Taiwan*"
-           "South Korea" "Korea, South"} % %)))
+          "South Korea" "Korea, South"} % %))) ; pass-through if not found
 
 (defn stage-data! [ds input-dir]
   (->>
@@ -162,9 +162,9 @@
     '()
     (let [earliest (->> dates (sort-by :date) first :date t/local-date-time)
           prev-days (->> (range (* -1 cnt) 0)
-                      (map #(t/plus earliest (t/days %)))
-                      (map t/sql-date)
-                      (map #(-> {:date %})))]
+                         (map #(t/plus earliest (t/days %)))
+                         (map t/sql-date)
+                         (map #(-> {:date %})))]
       (concat prev-days dates))))
 
 (defn load-dim-date! [ds]
