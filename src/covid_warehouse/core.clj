@@ -75,12 +75,6 @@
       #(map (juxt :country)
         (distinct-countries con)))))
 
-(comment
-
-  (take 1 (all-places ds))
-
-  )
-
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
 
