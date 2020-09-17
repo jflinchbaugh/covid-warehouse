@@ -66,22 +66,23 @@
 (defn -main
   [action & args]
 
-  (jdbc/with-transaction [con ds]
     (cond
       (= "load" action)
-      (load-db con (first args))
+      (jdbc/with-transaction [con ds]
+        (load-db con (first args)))
       (= "query" action)
-      (query con args)
+      (query ds args)
       (= "all" action)
       (do
-        (load-db con (first args))
-        (let [all-places (all-places con)]
+        (jdbc/with-transaction [con ds]
+          (load-db con (first args)))
+        (let [all-places (all-places ds)]
           (doall
-            (pmap (partial query con) all-places))
+            (pmap (partial query ds) all-places))
           (spit
            "output/index.html"
            (index-file all-places)))
-        (copy-style)))))
+        (copy-style))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
