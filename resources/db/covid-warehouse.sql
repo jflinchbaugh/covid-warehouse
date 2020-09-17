@@ -105,6 +105,71 @@ select distinct
 from
   covid_day
 
+-- :name distinct-counties-by-state-country
+-- :command :query
+-- :result :many
+select distinct
+  l.country
+  , l.state
+  , l.county
+  , count(f.location_key) as count
+from
+  dim_location l
+left join fact_day f
+  on l.location_key = f.location_key
+where
+  l.country = :country
+  and l.state = :state
+group by
+  l.country
+  , l.state
+  , l.county
+having
+  count(f.location_key) > 10
+order by
+  l.country
+  , l.state
+  , l.county
+
+-- :name distinct-states-by-country
+-- :command :query
+-- :result :many
+select distinct
+  l.country
+  , l.state
+  , count(f.location_key) as count
+from
+  dim_location l
+left join fact_day f
+  on l.location_key = f.location_key
+where
+  l.country = :country
+group by
+  l.country
+  , l.state
+having
+  count(f.location_key) > 10
+order by
+  l.country
+  , l.state
+
+-- :name distinct-countries
+-- :command :query
+-- :result :many
+select distinct
+  l.country
+  , count(f.location_key) as count
+from
+  dim_location l
+left join fact_day f
+  on l.location_key = f.location_key
+group by
+  l.country
+having
+  count(f.location_key) > 10
+order by
+  l.country
+
 -- :name distinct-staged-dates
 -- :command :query
 -- :result :many
@@ -193,7 +258,6 @@ group by
   l.country
   , l.state
   , l.county
-
 
 -- :name dw-series-by-country
 -- :command :query
@@ -399,5 +463,3 @@ group by
   , l.country
 order by
   d.date desc
-
-
