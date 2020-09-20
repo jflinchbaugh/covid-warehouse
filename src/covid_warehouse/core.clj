@@ -19,12 +19,6 @@
      :else
      (dw-rolling-series-by-county ds {:country country :state state :county county}))))
 
-(def print-day
-  (comp
-   println
-   (partial str/join " ")
-   (juxt :date :country :state :county :case-change :death-change :recovery-change)))
-
 (defn load-db [con path]
   (time
     (do
