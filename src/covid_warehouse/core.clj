@@ -29,20 +29,24 @@
      ret#))
 
 (defn load-db [con path]
-  (timer "loading"
+  (timer "load data"
          (do
            (create-stage! con)
-           (stage-data!
-            con
-            path)
+           (timer "stage data"
+                  (stage-data!
+                   con
+                   path))
 
            (create-dims! con)
-           (load-dim-location! con)
-           (load-dim-date! con)
+           (timer "load locations"
+                  (load-dim-location! con))
+           (timer "load dates"
+                  (load-dim-date! con))
 
            (drop-fact-day! con)
            (create-fact-day! con)
-           (load-fact-day! con))))
+           (timer "load facts"
+                  (load-fact-day! con)))))
 
 (defn query [con args]
   (timer (str "query " args)
