@@ -26,39 +26,42 @@
    (juxt :date :country :state :county :case-change :death-change :recovery-change)))
 
 (defn load-db [con path]
-  (do
-    (create-stage! con)
-    (stage-data!
-     con
-     path)
+  (time
+    (do
+      (create-stage! con)
+      (stage-data!
+        con
+        path)
 
-    (create-dims! con)
-    (load-dim-location! con)
-    (load-dim-date! con)
+      (create-dims! con)
+      (load-dim-location! con)
+      (load-dim-date! con)
 
-    (drop-fact-day! con)
-    (create-fact-day! con)
-    (load-fact-day! con)))
+      (drop-fact-day! con)
+      (create-fact-day! con)
+      (load-fact-day! con))))
 
 (defn query [con args]
-  (let [[country state county] args
-        series (map shorten-keys (dw-series con country state county))]
-    (spit
-     (str "output/" (html-file-name (file-name country state county)))
-     (report series))))
+  (time
+    (let [[country state county] args
+          series (map shorten-keys (dw-series con country state county))]
+      (spit
+        (str "output/" (html-file-name (file-name country state county)))
+        (report series)))))
 
 (defn all-places
   "list all the places we care to see"
   [con]
-  (sort
-    (apply concat
-      (pcalls 
-        #(map (juxt :country :state :county)
-           (distinct-counties-by-state-country con {:country "US" :state "Pennsylvania"}))
-        #(map (juxt :country :state)
-           (distinct-states-by-country con {:country "US"}))
-        #(map (juxt :country)
-           (distinct-countries con))))))
+  (time
+    (sort
+      (apply concat
+        (pcalls 
+          #(map (juxt :country :state :county)
+             (distinct-counties-by-state-country con {:country "US" :state "Pennsylvania"}))
+          #(map (juxt :country :state)
+             (distinct-states-by-country con {:country "US"}))
+          #(map (juxt :country)
+             (distinct-countries con)))))))
 
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
