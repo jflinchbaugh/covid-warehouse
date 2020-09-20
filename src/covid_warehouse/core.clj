@@ -30,41 +30,41 @@
 
 (defn load-db [con path]
   (timer "loading"
-   (do
-     (create-stage! con)
-     (stage-data!
-      con
-      path)
+         (do
+           (create-stage! con)
+           (stage-data!
+            con
+            path)
 
-     (create-dims! con)
-     (load-dim-location! con)
-     (load-dim-date! con)
+           (create-dims! con)
+           (load-dim-location! con)
+           (load-dim-date! con)
 
-     (drop-fact-day! con)
-     (create-fact-day! con)
-     (load-fact-day! con))))
+           (drop-fact-day! con)
+           (create-fact-day! con)
+           (load-fact-day! con))))
 
 (defn query [con args]
   (timer (str "query " args)
-   (let [[country state county] args
-         series (map shorten-keys (dw-series con country state county))]
-     (spit
-      (str "output/" (html-file-name (file-name country state county)))
-      (report series)))))
+         (let [[country state county] args
+               series (map shorten-keys (dw-series con country state county))]
+           (spit
+            (str "output/" (html-file-name (file-name country state county)))
+            (report series)))))
 
 (defn all-places
   "list all the places we care to see"
   [con]
   (timer "all-places"
-   (sort
-    (apply concat
-           (pcalls
-            #(map (juxt :country :state :county)
-                  (distinct-counties-by-state-country con {:country "US" :state "Pennsylvania"}))
-            #(map (juxt :country :state)
-                  (distinct-states-by-country con {:country "US"}))
-            #(map (juxt :country)
-                  (distinct-countries con)))))))
+         (sort
+          (apply concat
+                 (pcalls
+                  #(map (juxt :country :state :county)
+                        (distinct-counties-by-state-country con {:country "US" :state "Pennsylvania"}))
+                  #(map (juxt :country :state)
+                        (distinct-states-by-country con {:country "US"}))
+                  #(map (juxt :country)
+                        (distinct-countries con)))))))
 
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
@@ -83,8 +83,9 @@
       (jdbc/with-transaction [con ds]
         (load-db con (first args)))
       (let [all-places (all-places ds)]
-        (doall
-         (pmap (partial query ds) all-places))
+        (timer "all reorts"
+               (doall
+                (pmap (partial query ds) all-places)))
         (spit
          "output/index.html"
          (index-file all-places)))
