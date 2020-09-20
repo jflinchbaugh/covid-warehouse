@@ -46,7 +46,7 @@
            (drop-fact-day! con)
            (create-fact-day! con)
            (timer "load facts"
-                  (load-fact-day! con)))))
+             (load-fact-day! con)))))
 
 (defn query [con args]
   (timer (str "query " args)
@@ -149,7 +149,5 @@
   (map (comp (partial conj []) (juxt :country :state)) (distinct-states-by-country ds {:country "US"}))
 
   (distinct-states-by-country ds {:country "US"})
-
-  (timer "thing" (+ 1 1))
 
   nil)
