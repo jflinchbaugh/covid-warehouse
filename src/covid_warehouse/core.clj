@@ -59,7 +59,7 @@
 (defn all-places
   "list all the places we care to see"
   [con]
-  (timer "all-places"
+  (timer "all places"
          (sort
           (apply concat
                  (pcalls
@@ -102,7 +102,7 @@
       (jdbc/with-transaction [con ds]
         (load-db con (first args)))
       (let [all-places (all-places ds)]
-        (timer "all reorts"
+        (timer "all reports"
                (doall
                 (pmap (partial query ds) all-places)))
         (spit
