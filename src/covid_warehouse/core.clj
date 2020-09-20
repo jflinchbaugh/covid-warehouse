@@ -68,8 +68,18 @@
                           (map (juxt :country :state)
                                (distinct-states-by-country con {:country "US"})))
                   #(timer "countries"
-                          (map (juxt :country)
-                               (distinct-countries con))))))))
+                          (-> [["US"]
+                               ["United Kingdom"]
+                               ["Brazil"]
+                               ["Japan"]
+                               ["China"]
+                               ["Korea, South"]
+                               ["Hong Kong"]
+                               ["New Zealand"]
+                               ["France"]]))
+                  #_(timer "countries"
+                           (map (juxt :country)
+                                (distinct-countries con))))))))
 
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
