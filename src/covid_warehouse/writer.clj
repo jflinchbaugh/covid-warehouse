@@ -18,7 +18,10 @@
      [:td.case-graph (case-line case-change-history)]]))
 
 (defn graph-line [ch fit-size max-count count]
-  (let [c (int (* fit-size (if (zero? max-count) 0 (/ count max-count))))]
+  (let [log-max (Math/log (inc (if (neg? max-count) 0 max-count)))
+        log-count (Math/log (inc (if (neg? count) 0 count)))
+        block-size (if (zero? log-max) 0 (/ log-count log-max))
+        c (int (* fit-size block-size))]
     (str/join (repeat c ch))))
 
 (defn total-line [days]
