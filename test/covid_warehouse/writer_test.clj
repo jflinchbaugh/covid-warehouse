@@ -10,10 +10,10 @@
       "" (graph-line "!" 5 1 0)
       "!!!!!" (graph-line "!" 5 1 1)
       "!!!!!" (graph-line "!" 5 1 1)
-      "!!" (graph-line "!" 5 2 1)
-      "!" (graph-line "!" 5 3 1)
+      "!!!" (graph-line "!" 5 2 1)
+      "!!" (graph-line "!" 5 3 1)
       "!" (graph-line "!" 5 5 1)
-      "" (graph-line "!" 5 6 1)
+      "!" (graph-line "!" 5 6 1)
       "xx" (graph-line "xx" 5 5 1))))
 
 (t/deftest test-file-name
