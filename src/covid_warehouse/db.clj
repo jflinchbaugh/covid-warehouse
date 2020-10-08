@@ -15,8 +15,10 @@
 (def ds (jdbc/get-datasource {:dbtype "h2" :dbname "covid"}))
 
 (defn create-stage! [ds]
+  (drop-covid-day-location-index! ds)
   (drop-covid-day! ds)
-  (create-covid-day! ds))
+  (create-covid-day! ds)
+  (create-covid-day-location-index! ds))
 
 (def stage-map
   {:date :date

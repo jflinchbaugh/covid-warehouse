@@ -20,6 +20,20 @@ create table covid_day (
   primary key (date, country, state, county)
 )
 
+-- :name drop-covid-day-location-index!
+-- :command :execute
+-- :result :raw
+drop index covid_day_location_idx if exists
+
+-- :name create-covid-day-location-index!
+-- :command :execute
+-- :result :raw
+create index covid_day_location_idx on covid_day (
+  country,
+  state,
+  county
+)
+
 -- :name drop-dim-location!
 -- :command :execute
 -- :result :raw
