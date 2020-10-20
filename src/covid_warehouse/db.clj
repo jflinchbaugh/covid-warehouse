@@ -97,6 +97,9 @@
           "Taiwan" "Taiwan*"
           "South Korea" "Korea, South"} % %))) ; pass-through if not found
 
+(defn overlap-location? [r]
+  (= ((juxt :country :state :county) r) ["US" "New York" "New York City"]))
+
 (defn stage-data! [ds input-dir]
   (->>
    input-dir
@@ -105,7 +108,7 @@
    latest-daily
    ammend-changes
    (filter has-changes?)
-   (remove #(= ((juxt :country :state :county) %) ["US" "New York" "New York City"]))
+   (remove overlap-location?)
    (map (partial insert-day! ds))
    doall
    count))
