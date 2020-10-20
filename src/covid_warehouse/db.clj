@@ -105,6 +105,7 @@
    latest-daily
    ammend-changes
    (filter has-changes?)
+   (remove #(= ((juxt :country :state :county) %) ["US" "New York" "New York City"]))
    (map (partial insert-day! ds))
    doall
    count))
@@ -181,8 +182,10 @@
      count)))
 
 (defn create-dims! [ds]
+  (drop-dim-location-index! ds)
   (drop-dim-location! ds)
   (create-dim-location! ds)
+  (create-dim-location-index! ds)
   (drop-dim-date! ds)
   (create-dim-date! ds))
 

@@ -49,6 +49,20 @@ create table dim_location (
   county varchar,
   unique (country, state, county))
 
+-- :name drop-dim-location-index!
+-- :command :execute
+-- :result :raw
+drop index dim_location_idx if exists
+
+-- :name create-dim-location-index!
+-- :command :execute
+-- :result :raw
+create index dim_location_idx on dim_location (
+  country,
+  state,
+  county
+)
+
 -- :name drop-dim-date!
 -- :command :execute
 -- :result :raw
