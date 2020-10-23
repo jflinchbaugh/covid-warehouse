@@ -298,6 +298,9 @@ select
   , sum(f.case_change) as case_change
   , sum(f.death_change) as death_change
   , sum(f.recovery_change) as recovery_change
+  , sum(f.case_change) as case_change_history
+  , sum(f.death_change) as death_change_history
+  , sum(f.recovery_change) as recovery_change_history
 from dim_date d
 left join fact_day f
   on d.date_key = f.date_key
@@ -327,6 +330,9 @@ select
   , sum(f.case_change) as case_change
   , sum(f.death_change) as death_change
   , sum(f.recovery_change) as recovery_change
+  , sum(f.case_change) as case_change_history
+  , sum(f.death_change) as death_change_history
+  , sum(f.recovery_change) as recovery_change_history
 from dim_date d
 left join fact_day f
   on d.date_key = f.date_key
@@ -359,6 +365,9 @@ select
   , f.case_change
   , f.death_change
   , f.recovery_change
+  , f.case_change as case_change_history
+  , f.death_change as death_change_history
+  , f.recovery_change as recovery_change_history
 from dim_date d
 left join fact_day f
   on d.date_key = f.date_key

@@ -11,13 +11,13 @@
   (doall
    (cond
      (and (nil? state) (nil? county))
-     (dw-rolling-series-by-country ds {:country country})
+     (dw-series-by-country ds {:country country})
 
      (nil? county)
-     (dw-rolling-series-by-state ds {:country country :state state})
+     (dw-series-by-state ds {:country country :state state})
 
      :else
-     (dw-rolling-series-by-county ds {:country country :state state :county county}))))
+     (dw-series-by-county ds {:country country :state state :county county}))))
 
 (defmacro timer
   "Evaluates expr and prints the time it took.  Returns the value of expr."
@@ -132,7 +132,7 @@
 
   (diff-queries
    dw-series-by-county
-   dw-rolling-series-by-county
+   dw-series-by-county
    {:country "US" :state "Pennsylvania" :county "York"}
    (juxt :date :case_change))
 
