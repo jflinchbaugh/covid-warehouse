@@ -1,1 +1,2 @@
-*  try insert! commands in place of execute!
+* DONE try insert! commands in place of execute!
+  CLOSED: [2020-10-23 Fri 00:16]
