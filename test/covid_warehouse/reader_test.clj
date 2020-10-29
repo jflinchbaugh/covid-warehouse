@@ -69,3 +69,11 @@
                         :ignored
                         :ignored
                         :ignored])))))
+
+(deftest test-fix-numbers
+  (testing "fix-numbers converts all numbers"
+    (are [in out] (= out (sut/fix-numbers in))
+      {:cases "1" :deaths "2" :recoveries "3"} {:cases 1 :deaths 2 :recoveries 3}
+      {:cases "1.0" :deaths "2.0" :recoveries "3.0"} {:cases 1 :deaths 2 :recoveries 3}
+      {:cases "1.9" :deaths "2.9" :recoveries "3.9"} {:cases 1 :deaths 2 :recoveries 3}
+      )))
