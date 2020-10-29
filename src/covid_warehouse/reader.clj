@@ -61,7 +61,7 @@
 
 (defn fix-date [m] (update-in m [:date] parse-date))
 
-(defn parse-int [i] (when-not (str/blank? i) (int (Double/parseDouble i))))
+(defn- parse-int [i] (when-not (str/blank? i) (int (Double/parseDouble i))))
 
 (defn fix-numbers [m]
   (-> m
