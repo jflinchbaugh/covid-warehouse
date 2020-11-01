@@ -37,9 +37,9 @@
     (t/is (= [:li [:a {:href (util/to-uri "us-thing-other.html")} ["us thing other"]]]
              (index-line ["us" "thing" "other"])))))
 
-(t/deftest test-index-file
-  (t/testing "index-file"
-    (let [content (index-file [["US"] ["US" "PA"]])]
+(t/deftest test-index-html
+  (t/testing "index-html"
+    (let [content (index-html [["US"] ["US" "PA"]])]
       (t/is (re-find #".*html.*head.*title.*COVID.*style.css.*" content))
       (t/is (re-find #".*html.*body.*ul.*li.*href" content))
       (t/is (re-find #"US-PA.html.*US PA.*" content)))))

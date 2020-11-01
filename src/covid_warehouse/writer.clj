@@ -28,7 +28,7 @@
 (defn total-line [days]
   [:tr
    [:td.date "Total"]
-   [:td.death-change (reduce + 0 (map :death-change days)) ]
+   [:td.death-change (reduce + 0 (map :death-change days))]
    [:td.death-graph ""]
    [:td.case-change (reduce + 0 (map :case-change days))]
    [:td.case-graph ""]])
@@ -36,42 +36,41 @@
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))]
     (str
-      (p/html5 {:lang "en"}
-        [:head
-         [:title title]
-         (p/include-css "style.css")]
-        [:body
-         (e/link-to "index.html" "<< Back")
-         [:h1 title]
-         [:table
-          [:thead
-           [:tr
-            [:th.date "Date"]
-            [:th.death-change "Deaths"]
-            [:th.death-graph "Deaths"]
-            [:th.case-change "Cases"]
-            [:th.case-graph "Cases"]]]
-          [:tbody
-           (total-line days)
-           (let [max-cases (apply max (map :case-change-history days))
-                 max-deaths (apply max (map :death-change-history days))
-                 case-line (partial graph-line "!" 75 max-cases)
-                 death-line (partial graph-line "!" 50 max-deaths)
-                 ]
-             (map (partial day-row case-line death-line) days))]]]))))
+     (p/html5 {:lang "en"}
+              [:head
+               [:title title]
+               (p/include-css "style.css")]
+              [:body
+               (e/link-to "index.html" "<< Back")
+               [:h1 title]
+               [:table
+                [:thead
+                 [:tr
+                  [:th.date "Date"]
+                  [:th.death-change "Deaths"]
+                  [:th.death-graph "Deaths"]
+                  [:th.case-change "Cases"]
+                  [:th.case-graph "Cases"]]]
+                [:tbody
+                 (total-line days)
+                 (let [max-cases (apply max (map :case-change-history days))
+                       max-deaths (apply max (map :death-change-history days))
+                       case-line (partial graph-line "!" 75 max-cases)
+                       death-line (partial graph-line "!" 50 max-deaths)]
+                   (map (partial day-row case-line death-line) days))]]]))))
 
 (defn report-json [days]
   (let [title (str/trim
-                (str/join " " ((juxt :country :state :county) (first days))))]
+               (str/join " " ((juxt :country :state :county) (first days))))]
     (json/generate-string
-      {:title title
-       :max-cases (apply max (map :case-change-history days))
-       :max-deaths (apply max (map :death-change-history days))
-       :death-total (reduce + 0 (map :death-change days))
-       :case-total (reduce + 0 (map :case-change days))
-       :days (map
-               #(select-keys % [:date :case-change :death-change])
-               days)})))
+     {:title title
+      :max-cases (apply max (map :case-change-history days))
+      :max-deaths (apply max (map :death-change-history days))
+      :death-total (reduce + 0 (map :death-change days))
+      :case-total (reduce + 0 (map :case-change days))
+      :days (map
+             #(select-keys % [:date :case-change :death-change])
+             days)})))
 
 (defn file-name [& lst]
   (str/replace (str/trim (str/join " " lst)) #" " "-"))
@@ -85,12 +84,20 @@
 (defn index-line [place]
   [:li (e/link-to (html-file-name (apply file-name place)) (str/join " " place))])
 
-(defn index-file [places]
+(defn index-html [places]
   (p/html5 {:lang "en"}
-    [:head
-     [:title "COVID Data"]
-     (p/include-css "style.css")]
-    [:body
-     [:h1 "COVID Data"]
-     [:ul
-      (doall (map index-line places))]]))
+           [:head
+            [:title "COVID Data"]
+            (p/include-css "style.css")]
+           [:body
+            [:h1 "COVID Data"]
+            [:ul
+             (doall (map index-line places))]]))
+
+(defn index-json [places]
+  (json/generate-string
+   {:places (map
+             (fn [place]
+               {:place place
+                :file-name (json-file-name (apply file-name place))})
+             places)}))

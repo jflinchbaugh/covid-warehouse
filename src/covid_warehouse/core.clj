@@ -106,8 +106,11 @@
                (doall
                 (pmap (partial query ds) all-places)))
         (spit
-         "output/index.html"
-         (index-file all-places)))
+          "output/index.html"
+          (index-html all-places))
+        (spit
+         "output/index.json"
+         (index-json all-places)))
       (copy-style))))
 
 (comment
