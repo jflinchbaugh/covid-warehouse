@@ -144,9 +144,10 @@
      count)))
 
 (defn insert-dim-date! [ds [date]]
-  (let [[year month day-of-month dow]
+  (let [ldt (t/local-date-time date)
+        [year month day-of-month dow]
         (t/as
-         (t/local-date-time date)
+         ldt
          :year
          :month-of-year
          :day-of-month
@@ -157,7 +158,8 @@
      ds
      :dim_date
      {:date_key (uuid)
-      :date date
+      :date (t/format "yyyy-MM-dd" ldt)
+      :raw_date date
       :year year
       :month month
       :day_of_month day-of-month
@@ -228,11 +230,15 @@
                       (map vals)
                       set)
         date-lookup (->>
-                     (dim-dates ds)
-                     (map (comp (partial take 2) vals))
+                     ds
+                     dim-dates
+                     (map (juxt :date_key :raw_date))
                      dim->lookup)
-
-        location-lookup (dim->lookup (map vals (dim-locations ds)))]
+        location-lookup (->>
+                         ds
+                         dim-locations
+                         (map (juxt :location_key :country :state :county))
+                         dim->lookup)]
     (->>
      ds
      staged-data
@@ -257,9 +263,3 @@
   (let [s (map tf (q1 ds params))
         r (map tf (q2 ds params))]
     (filter (fn [[sc rc]] (not= sc rc)) (partition 2 (interleave s r)))))
-
-(comment
-
-  (dw-sums-by-county ds {:country "US" :state "Pennsylvania" :county "Lancaster"})
-
-  nil)

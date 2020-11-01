@@ -53,8 +53,11 @@
          (let [[country state county] args
                series (map shorten-keys (dw-series con country state county))]
            (spit
-            (str "output/" (html-file-name (file-name country state county)))
-            (report series)))))
+             (str "output/" (html-file-name (file-name country state county)))
+             (report series))
+           (spit
+            (str "output/" (json-file-name (file-name country state county)))
+            (report-json series)))))
 
 (defn all-places
   "list all the places we care to see"

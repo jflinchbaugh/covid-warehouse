@@ -2,7 +2,8 @@
   (:require [hiccup.core :as h]
             [hiccup.page :as p]
             [hiccup.element :as e]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cheshire.core :as json]))
 
 (defn day-row [case-line death-line day]
   (let [case-change-history (:case-change-history day)
@@ -59,11 +60,27 @@
                  ]
              (map (partial day-row case-line death-line) days))]]]))))
 
+(defn report-json [days]
+  (let [title (str/trim
+                (str/join " " ((juxt :country :state :county) (first days))))]
+    (json/generate-string
+      {:title title
+       :max-cases (apply max (map :case-change-history days))
+       :max-deaths (apply max (map :death-change-history days))
+       :death-total (reduce + 0 (map :death-change days))
+       :case-total (reduce + 0 (map :case-change days))
+       :days (map
+               #(select-keys % [:date :case-change :death-change])
+               days)})))
+
 (defn file-name [& lst]
   (str/replace (str/trim (str/join " " lst)) #" " "-"))
 
 (defn html-file-name [f]
   (str f ".html"))
+
+(defn json-file-name [f]
+  (str f ".json"))
 
 (defn index-line [place]
   [:li (e/link-to (html-file-name (apply file-name place)) (str/join " " place))])

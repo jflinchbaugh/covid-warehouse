@@ -72,13 +72,15 @@ drop table dim_date if exists
 -- :command :execute
 -- :result :raw
 create table dim_date (
-  date_key uuid primary key,
-  date date,
-  year int,
-  month int,
-  day_of_month int,
-  day_of_week varchar,
-  unique (date))
+  date_key uuid primary key
+  , date varchar
+  , raw_date date
+  , year int
+  , month int
+  , day_of_month int
+  , day_of_week varchar
+  , unique (date)
+  , unique (raw_date))
 
 -- :name drop-fact-day!
 -- :command :execute
@@ -102,6 +104,7 @@ create table fact_day (
 select
   date_key
   , date
+  , raw_date
   , year
   , month
   , day_of_month
