@@ -80,10 +80,7 @@
                                ["Korea, South"]
                                ["Hong Kong"]
                                ["New Zealand"]
-                               ["France"]]))
-                  #_(timer "countries"
-                           (map (juxt :country)
-                                (distinct-countries con))))))))
+                               ["France"]])))))))
 
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
