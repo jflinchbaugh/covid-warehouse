@@ -66,8 +66,8 @@
      {:title title
       :max-cases (apply max (map :case-change-history days))
       :max-deaths (apply max (map :death-change-history days))
-      :death-total (reduce + 0 (map :death-change days))
-      :case-total (reduce + 0 (map :case-change days))
+      :total-cases (reduce + 0 (map :case-change days))
+      :total-deaths (reduce + 0 (map :death-change days))
       :days (map
              #(select-keys % [:date :case-change :death-change])
              days)})))
