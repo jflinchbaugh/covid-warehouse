@@ -82,7 +82,12 @@
   (str f ".json"))
 
 (defn index-line [place]
-  [:li (e/link-to (html-file-name (apply file-name place)) (str/join " " place))])
+  (let [html-url (html-file-name (apply file-name place))
+        json-url (json-file-name (apply file-name place))]
+    [:li
+     (e/link-to html-url (str/join " " place))
+     " "
+     (e/link-to json-url "(json)")]))
 
 (defn index-html [places]
   (p/html5 {:lang "en"}
@@ -91,6 +96,7 @@
             (p/include-css "style.css")]
            [:body
             [:h1 "COVID Data"]
+            [:div (e/link-to "index.json" "(json)")]
             [:ul
              (doall (map index-line places))]]))
 
@@ -98,6 +104,6 @@
   (json/generate-string
    {:places (map
              (fn [place]
-               {:place place
+               {:place (str/trim (str/join " " place))
                 :file-name (json-file-name (apply file-name place))})
              places)}))
