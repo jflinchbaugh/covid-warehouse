@@ -86,8 +86,7 @@
                                ["China"]
                                ["Korea, South"]
                                ["Hong Kong"]
-                               ["New Zealand"]
-                               ["France"]])))))))
+                               ["New Zealand"]])))))))
 
 (defn copy-style []
   (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
