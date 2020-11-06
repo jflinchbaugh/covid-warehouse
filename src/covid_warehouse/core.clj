@@ -76,6 +76,10 @@
                                (distinct-states-by-country con {:country "US"})))
                   #(timer "countries"
                           (-> [["US"]
+                               ["Greece"]
+                               ["Mexico"]
+                               ["Italy"]
+                               ["France"]
                                ["United Kingdom"]
                                ["Brazil"]
                                ["Japan"]
