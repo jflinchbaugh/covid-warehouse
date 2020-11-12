@@ -7,11 +7,12 @@
                  [org.clojure/data.csv "1.0.0"]
                  [clojure.java-time "0.3.2"]
                  [hiccup "1.0.5"]
-                 [seancorfield/next.jdbc "1.1.610"]
+                 [seancorfield/next.jdbc "1.1.613"]
                  [com.h2database/h2 "1.4.200"]
                  [com.layerware/hugsql-adapter-next-jdbc "0.5.1"]
                  [com.layerware/hugsql-core "0.5.1"]
                  [cheshire "5.10.0"]]
   :main ^:skip-aot covid-warehouse.core
   :target-path "target/%s"
+  :jvm-opts ["-Xmx2g" "-server"]
   :profiles {:uberjar {:aot :all}})
