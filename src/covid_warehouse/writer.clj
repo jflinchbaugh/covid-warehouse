@@ -18,10 +18,14 @@
      [:td.case-change cases]
      [:td.case-graph (case-line case-change-history)]]))
 
-(defn graph-line [ch fit-size max-count count]
-  (let [log-max (Math/log (inc (if (neg? max-count) 0 max-count)))
-        log-count (Math/log (inc (if (neg? count) 0 count)))
-        block-size (if (zero? log-max) 0 (/ log-count log-max))
+(defn log-scale [count] (Math/log (inc (if (neg? count) 0 count))))
+
+(defn linear-scale [count] (max count 0))
+
+(defn graph-line [ch scale fit-size max-count count]
+  (let [graph-max (scale max-count)
+        graph-count (scale count)
+        block-size (if (zero? graph-max) 0 (/ graph-count graph-max))
         c (int (* fit-size block-size))]
     (str/join (repeat c ch))))
 
@@ -34,7 +38,8 @@
    [:td.case-graph ""]])
 
 (defn report [days]
-  (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))]
+  (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
+        scale linear-scale]
     (str
      (p/html5 {:lang "en"}
               [:head
@@ -55,8 +60,8 @@
                  (total-line days)
                  (let [max-cases (apply max (map :case-change-history days))
                        max-deaths (apply max (map :death-change-history days))
-                       case-line (partial graph-line "!" 75 max-cases)
-                       death-line (partial graph-line "!" 50 max-deaths)]
+                       case-line (partial graph-line "!" scale 75 max-cases)
+                       death-line (partial graph-line "!" scale 50 max-deaths)]
                    (map (partial day-row case-line death-line) days))]]]))))
 
 (defn report-json [days]
