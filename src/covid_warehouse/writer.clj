@@ -26,8 +26,10 @@
   (let [graph-max (scale max-count)
         graph-count (scale count)
         block-size (if (zero? graph-max) 0 (/ graph-count graph-max))
-        c (min fit-size (int (* fit-size block-size)))]
-    (str/join (repeat c ch))))
+        raw-size (int (* fit-size block-size))
+        trunc-size (min fit-size raw-size)
+        graph-tail (if (> raw-size fit-size) ">" "")]
+    (str/join (conj (vec (repeat trunc-size ch)) graph-tail))))
 
 (defn total-line [days]
   [:tr
@@ -43,7 +45,8 @@
 
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
-        scale linear-scale]
+        scale linear-scale
+        drop-outliers drop-greatest]
     (str
      (p/html5 {:lang "en"}
               [:head
@@ -62,8 +65,8 @@
                   [:th.case-graph "Cases"]]]
                 [:tbody
                  (total-line days)
-                 (let [max-cases (apply max (drop-greatest (map :case-change-history days)))
-                       max-deaths (apply max (drop-greatest (map :death-change-history days)))
+                 (let [max-cases (apply max (drop-outliers (map :case-change-history days)))
+                       max-deaths (apply max (drop-outliers (map :death-change-history days)))
                        case-line (partial graph-line "!" scale 75 max-cases)
                        death-line (partial graph-line "!" scale 50 max-deaths)]
                    (map (partial day-row case-line death-line) days))]]]))))
