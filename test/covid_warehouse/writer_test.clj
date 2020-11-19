@@ -7,14 +7,14 @@
 (t/deftest test-graph-line
   (t/testing "graph-line"
     (t/are [expected actual] (= expected actual)
-      "" (graph-line "!" 5 1 0)
-      "!!!!!" (graph-line "!" 5 1 1)
-      "!!!!!" (graph-line "!" 5 1 1)
-      "!!!" (graph-line "!" 5 2 1)
-      "!!" (graph-line "!" 5 3 1)
-      "!" (graph-line "!" 5 5 1)
-      "!" (graph-line "!" 5 6 1)
-      "xx" (graph-line "xx" 5 5 1))))
+      "" (graph-line "!" log-scale 5 1 0)
+      "!!!!!" (graph-line "!" log-scale 5 1 1)
+      "!!!!!" (graph-line "!" log-scale 5 1 1)
+      "!!!" (graph-line "!" log-scale 5 2 1)
+      "!!" (graph-line "!" log-scale 5 3 1)
+      "!" (graph-line "!" log-scale 5 5 1)
+      "!" (graph-line "!" log-scale 5 6 1)
+      "xx" (graph-line "xx" log-scale 5 5 1))))
 
 (t/deftest test-file-name
   (t/testing "file-name"
@@ -31,10 +31,20 @@
 
 (t/deftest test-index-line
   (t/testing "index-line"
-    (t/is (= [:li [:a {:href (util/to-uri ".html")} [""]]] (index-line [])))
-    (t/is (= [:li [:a {:href (util/to-uri "us-thing.html")} ["us thing"]]]
-            (index-line ["us" "thing"])))
-    (t/is (= [:li [:a {:href (util/to-uri "us-thing-other.html")} ["us thing other"]]]
+    (t/is (= [:li
+              [:a {:href (util/to-uri ".html")} [""]]
+              " "
+              [:a {:href (util/to-uri ".json")} ["(json)"]]]
+             (index-line [])))
+    (t/is (= [:li
+              [:a {:href (util/to-uri "us-thing.html")} ["us thing"]]
+              " "
+              [:a {:href (util/to-uri "us-thing.json")} ["(json)"]]]
+             (index-line ["us" "thing"])))
+    (t/is (= [:li
+              [:a {:href (util/to-uri "us-thing-other.html")} ["us thing other"]]
+              " "
+              [:a {:href (util/to-uri "us-thing-other.json")} ["(json)"]]]
              (index-line ["us" "thing" "other"])))))
 
 (t/deftest test-index-html
@@ -53,4 +63,4 @@
               [:td.case-change 20]
               [:td.case-graph ""]]
              (total-line [{:death-change 1 :case-change 12}
-                              {:death-change 9 :case-change 8}])))))
+                          {:death-change 9 :case-change 8}])))))
