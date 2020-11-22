@@ -22,6 +22,17 @@
 
 (defn linear-scale [count] (max count 0))
 
+(defn mean [coll]
+  (let [size (count coll)]
+    (double (/ (reduce + coll) size))))
+
+(defn sqr [n] (* n n))
+
+(defn stddev [coll]
+  (let [avg (mean coll)
+        size (count coll)]
+    (Math/sqrt (/ (reduce + (map #(sqr (- % avg)) coll)) size))))
+
 (defn graph-line [ch scale fit-size max-count count]
   (let [graph-max (scale max-count)
         graph-count (scale count)
@@ -43,10 +54,18 @@
   [coll]
   (->> coll sort reverse rest))
 
+(defn drop-outliers-stddev [threshold coll]
+  (let [sdev (stddev coll)
+        avg (mean coll)
+        max-diff (* threshold sdev)
+        f-dist #(Math/abs (- % avg))
+        f-keep #(<= (f-dist %) max-diff)]
+    (filter f-keep coll)))
+
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
         scale linear-scale
-        drop-outliers drop-greatest]
+        drop-outliers (partial drop-outliers-stddev 4)]
     (str
      (p/html5 {:lang "en"}
               [:head
