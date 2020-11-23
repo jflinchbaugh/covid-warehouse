@@ -104,3 +104,11 @@
     (t/is (= 0.0 (stddev [1])))
     (t/is (= 0.5 (stddev [1 2])))
     (t/is (= 1.118033988749895 (stddev [1 2 3 4])))))
+
+(t/deftest test-drop-outliers-stddev
+  (t/testing "drop-outliers-stddev"
+    (t/is (= [] (drop-outliers-stddev 1 [])))
+    (t/is (= [1] (drop-outliers-stddev 1 [1])))
+    (t/is (= [1 2] (drop-outliers-stddev 1 [1 2])))
+    (t/is (= [1 2] (drop-outliers-stddev 1 [-4 1 2 10])))
+    (t/is (= [-4 1 2 10] (drop-outliers-stddev 2 [-4 1 2 10])))))
