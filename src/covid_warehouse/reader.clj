@@ -68,10 +68,3 @@
       (update-in [:cases] parse-int)
       (update-in [:deaths] parse-int)
       (update-in [:recoveries] parse-int)))
-
-(defn view
-  ([f col]
-   (let [tp (f col)]
-     (doall (map println tp)) col))
-  ([col]
-   (view (partial take 50) col)))
