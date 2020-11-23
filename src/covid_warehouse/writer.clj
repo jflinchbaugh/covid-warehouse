@@ -136,7 +136,9 @@
 
 (defn index-json [places]
   (json/generate-string
-   {:places (map
+    {:title "COVID Data"
+     :prepared (java.util.Date.)
+     :places (map
              (fn [place]
                {:place (str/trim (str/join " " place))
                 :file-name (json-file-name (apply file-name place))})
