@@ -132,8 +132,7 @@
            [:body
             [:h1 "COVID Data"]
             [:div (e/link-to "index.json" "(json)")]
-            [:ul
-             (doall (map index-line places))]
+            [:ul (map index-line places)]
             [:div.prepared (java.util.Date.)]]))
 
 (defn index-json [places]
