@@ -97,3 +97,10 @@
     (t/is (= 1.0 (mean [1])))
     (t/is (= 1.5 (mean [1 2])))
     (t/is (= 0.0 (mean [-1 0 1])))))
+
+(t/deftest test-stddev
+  (t/testing "stddev"
+    (t/is (= 0.0 (stddev [])))
+    (t/is (= 0.0 (stddev [1])))
+    (t/is (= 0.5 (stddev [1 2])))
+    (t/is (= 1.118033988749895 (stddev [1 2 3 4])))))

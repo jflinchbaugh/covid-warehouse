@@ -24,14 +24,16 @@
 
 (defn mean [coll]
   (let [size (count coll)]
-    (if (zero? size) 0.0 (double (/ (reduce + coll) size)))))
+    (if (zero? size) 0.0
+        (double (/ (reduce + coll) size)))))
 
 (defn sqr [n] (* n n))
 
 (defn stddev [coll]
   (let [avg (mean coll)
         size (count coll)]
-    (Math/sqrt (/ (reduce + (map #(sqr (- % avg)) coll)) size))))
+    (if (zero? size) 0.0
+        (Math/sqrt (/ (reduce + (map #(sqr (- % avg)) coll)) size)))))
 
 (defn graph-line [ch scale fit-size max-count count]
   (let [graph-max (scale max-count)
@@ -136,9 +138,9 @@
 
 (defn index-json [places]
   (json/generate-string
-    {:title "COVID Data"
-     :prepared (java.util.Date.)
-     :places (map
+   {:title "COVID Data"
+    :prepared (java.util.Date.)
+    :places (map
              (fn [place]
                {:place (str/trim (str/join " " place))
                 :file-name (json-file-name (apply file-name place))})
