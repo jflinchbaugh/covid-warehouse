@@ -64,3 +64,36 @@
               [:td.case-graph ""]]
              (total-line [{:death-change 1 :case-change 12}
                           {:death-change 9 :case-change 8}])))))
+
+(t/deftest test-log-scale
+  (t/testing "log-scale"
+    (t/is (= 0.0 (log-scale 0)))
+    (t/is (= 0.0 (log-scale -1)))
+    (t/is (= (Math/log 2.0) (log-scale 1)))))
+
+(t/deftest test-linear-scale
+  (t/testing "linear-scale"
+    (t/is (= 0 (linear-scale 0)))
+    (t/is (= 0 (linear-scale -1)))
+    (t/is (= 1 (linear-scale 1)))))
+
+(t/deftest test-sqr
+  (t/testing "sqr"
+    (t/is (= 0 (sqr 0)))
+    (t/is (= 1 (sqr -1)))
+    (t/is (= 1 (sqr 1)))
+    (t/is (= 4 (sqr 2)))))
+
+(t/deftest test-drop-greatest
+  (t/testing "drop-greatest"
+    (t/is (= [] (drop-greatest [])))
+    (t/is (= [] (drop-greatest [1])))
+    (t/is (= [1] (drop-greatest [1 1])))
+    (t/is (= [1] (drop-greatest [2 1])))))
+
+(t/deftest test-mean
+  (t/testing "mean"
+    (t/is (= 0.0 (mean [])))
+    (t/is (= 1.0 (mean [1])))
+    (t/is (= 1.5 (mean [1 2])))
+    (t/is (= 0.0 (mean [-1 0 1])))))

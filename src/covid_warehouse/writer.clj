@@ -24,7 +24,7 @@
 
 (defn mean [coll]
   (let [size (count coll)]
-    (double (/ (reduce + coll) size))))
+    (if (zero? size) 0.0 (double (/ (reduce + coll) size)))))
 
 (defn sqr [n] (* n n))
 
