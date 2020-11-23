@@ -18,3 +18,8 @@ td, th {
 body {
     width: 100%;
 }
+
+.prepared {
+    font-style: italic;
+    font-size: 75%;
+}

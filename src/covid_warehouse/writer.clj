@@ -88,7 +88,8 @@
                        max-deaths (apply max (drop-outliers (map :death-change-history days)))
                        case-line (partial graph-line "!" scale 75 max-cases)
                        death-line (partial graph-line "!" scale 50 max-deaths)]
-                   (map (partial day-row case-line death-line) days))]]]))))
+                   (map (partial day-row case-line death-line) days))]]
+               [:div.prepared (java.util.Date.)]]))))
 
 (defn report-json [days]
   (let [title (str/trim
@@ -99,6 +100,7 @@
       :max-deaths (apply max (map :death-change-history days))
       :total-cases (reduce + 0 (map :case-change days))
       :total-deaths (reduce + 0 (map :death-change days))
+      :prepared (java.util.Date.)
       :days (map
              #(select-keys % [:date :case-change :death-change])
              days)})))
@@ -129,7 +131,8 @@
             [:h1 "COVID Data"]
             [:div (e/link-to "index.json" "(json)")]
             [:ul
-             (doall (map index-line places))]]))
+             (doall (map index-line places))]
+            [:div.prepared (java.util.Date.)]]))
 
 (defn index-json [places]
   (json/generate-string
