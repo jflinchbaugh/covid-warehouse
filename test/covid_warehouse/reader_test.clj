@@ -93,3 +93,17 @@
   (testing "fix-date error"
     (is (thrown? IllegalArgumentException (sut/fix-date {:date "12"}))
       )))
+
+(deftest test-cols->maps
+  (testing "cols->maps"
+    (with-redefs [sut/read-6 (constantly :6)
+                  sut/read-8 (constantly :8)
+                  sut/read-12 (constantly :12)
+                  sut/read-14 (constantly :14)]
+      (are [in out] (= out (sut/cols->maps in))
+        (repeat 6 :f) :6
+        (repeat 8 :f) :8
+        (repeat 12 :f) :12
+        (repeat 14 :f) :14)))
+  (testing "cols->maps error"
+    (is (thrown? IllegalArgumentException (sut/cols->maps (repeat 15 :f))))))
