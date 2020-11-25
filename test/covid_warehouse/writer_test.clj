@@ -14,7 +14,8 @@
       "!!" (graph-line "!" log-scale 5 3 1)
       "!" (graph-line "!" log-scale 5 5 1)
       "!" (graph-line "!" log-scale 5 6 1)
-      "xx" (graph-line "xx" log-scale 5 5 1))))
+      "xx" (graph-line "xx" log-scale 5 5 1)
+      "!!!>" (graph-line "!" log-scale 3 5 10))))
 
 (t/deftest test-file-name
   (t/testing "file-name"
