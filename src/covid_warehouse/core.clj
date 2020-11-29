@@ -88,8 +88,12 @@
                                ["Hong Kong"]
                                ["New Zealand"]])))))))
 
-(defn copy-style []
-  (io/copy (io/file (io/resource "web/style.css")) (io/file "output/style.css")))
+(defn copy-file [src dest]
+  (io/copy (io/file (io/resource src)) (io/file dest)))
+
+(defn copy-resources []
+  (copy-file "web/.htaccess" "output/.htaccess")
+  (copy-file "web/style.css" "output/style.css"))
 
 (defn -main
   [action & args]
@@ -114,7 +118,7 @@
         (spit
          "output/index.json"
          (index-json all-places)))
-      (copy-style))))
+      (copy-resources))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
