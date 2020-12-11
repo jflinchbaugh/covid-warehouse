@@ -119,10 +119,7 @@
 (defn index-line [place]
   (let [html-url (html-file-name (apply file-name place))
         json-url (json-file-name (apply file-name place))]
-    [:li
-     (e/link-to html-url (str/join " " place))
-     " "
-     (e/link-to json-url "(json)")]))
+    [:li (e/link-to html-url (str/join " " place))]))
 
 (defn index-html [places]
   (p/html5 {:lang "en"}
@@ -131,7 +128,6 @@
             (p/include-css "style.css")]
            [:body
             [:h1 "COVID Data"]
-            [:div (e/link-to "index.json" "(json)")]
             [:ul (map index-line places)]
             [:div.prepared (java.util.Date.)]]))
 
