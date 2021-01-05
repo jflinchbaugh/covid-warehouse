@@ -1,3 +1,10 @@
+body {
+    font-family: 'Helvetica Neue', Verdana, Helvetica, Arial, sans-serif;
+    margin: 0 auto;
+    -webkit-font-smoothing: antialiased;
+    width: 100%;
+}
+
 .date, .death-graph, .case-graph {
     text-align: left;
 }
@@ -13,10 +20,6 @@
 td, th {
     padding-left: 1ex;
     padding-right: 1ex;
-}
-
-body {
-    width: 100%;
 }
 
 .prepared {
