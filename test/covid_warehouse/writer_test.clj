@@ -33,19 +33,13 @@
 (t/deftest test-index-line
   (t/testing "index-line"
     (t/is (= [:li
-              [:a {:href (util/to-uri ".html")} [""]]
-              " "
-              [:a {:href (util/to-uri ".json")} ["(json)"]]]
+              [:a {:href (util/to-uri ".html")} [""]]]
              (index-line [])))
     (t/is (= [:li
-              [:a {:href (util/to-uri "us-thing.html")} ["us thing"]]
-              " "
-              [:a {:href (util/to-uri "us-thing.json")} ["(json)"]]]
+              [:a {:href (util/to-uri "us-thing.html")} ["us thing"]]]
              (index-line ["us" "thing"])))
     (t/is (= [:li
-              [:a {:href (util/to-uri "us-thing-other.html")} ["us thing other"]]
-              " "
-              [:a {:href (util/to-uri "us-thing-other.json")} ["(json)"]]]
+              [:a {:href (util/to-uri "us-thing-other.html")} ["us thing other"]]]
              (index-line ["us" "thing" "other"])))))
 
 (t/deftest test-index-html
@@ -84,13 +78,6 @@
     (t/is (= 1 (sqr -1)))
     (t/is (= 1 (sqr 1)))
     (t/is (= 4 (sqr 2)))))
-
-(t/deftest test-drop-greatest
-  (t/testing "drop-greatest"
-    (t/is (= [] (drop-greatest [])))
-    (t/is (= [] (drop-greatest [1])))
-    (t/is (= [1] (drop-greatest [1 1])))
-    (t/is (= [1] (drop-greatest [2 1])))))
 
 (t/deftest test-mean
   (t/testing "mean"
