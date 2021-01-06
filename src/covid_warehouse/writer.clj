@@ -5,6 +5,8 @@
             [clojure.string :as str]
             [cheshire.core :as json]))
 
+(def outlier-threshold 4)
+
 (defn day-row [case-line death-line day]
   (let [case-change-history (:case-change-history day)
         death-change-history (:death-change-history day)
@@ -35,6 +37,12 @@
     (if (zero? size) 0.0
         (Math/sqrt (/ (reduce + (map #(sqr (- % avg)) coll)) size)))))
 
+(defn upper-outlier-threshold [threshold coll]
+  (+ (mean coll) (* threshold (stddev coll))))
+
+(defn lower-outlier-threshold [threshold coll]
+  (- (mean coll) (* threshold (stddev coll))))
+
 (defn graph-line [ch scale fit-size max-count count]
   (let [graph-max (scale max-count)
         graph-count (scale count)
@@ -52,22 +60,16 @@
    [:td.case-change (reduce + 0 (map :case-change days))]
    [:td.case-graph ""]])
 
-(defn drop-greatest
-  [coll]
-  (->> coll sort reverse rest))
-
 (defn drop-outliers-stddev [threshold coll]
-  (let [sdev (stddev coll)
-        avg (mean coll)
-        max-diff (* threshold sdev)
-        f-dist #(Math/abs (- % avg))
-        f-keep #(<= (f-dist %) max-diff)]
+  (let [upper-threshold (upper-outlier-threshold threshold coll)
+        lower-threshold (lower-outlier-threshold threshold coll)
+        f-keep #(<= lower-threshold % upper-threshold)]
     (filter f-keep coll)))
 
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
         scale linear-scale
-        drop-outliers (partial drop-outliers-stddev 4)]
+        drop-outliers (partial drop-outliers-stddev outlier-threshold)]
     (str
      (p/html5 {:lang "en"}
               [:head
@@ -95,11 +97,22 @@
 
 (defn report-json [days]
   (let [title (str/trim
-               (str/join " " ((juxt :country :state :county) (first days))))]
+               (str/join " " ((juxt :country :state :county) (first days))))
+        case-changes (map :case-change-history days)
+        death-changes (map :death-change-history days)]
     (json/generate-string
      {:title title
-      :max-cases (apply max (map :case-change-history days))
-      :max-deaths (apply max (map :death-change-history days))
+      :visualization {:cases {:max (apply max case-changes)
+                              :average (mean case-changes)
+                              :stddev (stddev case-changes)
+                              :upper-outlier-threshold (upper-outlier-threshold outlier-threshold case-changes)
+                              :lower-outlier-threshold (lower-outlier-threshold outlier-threshold case-changes)}
+                      :deaths {:max (apply max death-changes)
+                               :average (mean death-changes)
+                               :stddev (stddev death-changes)
+                               :upper-outlier-threshold (upper-outlier-threshold outlier-threshold death-changes)
+                               :lower-outlier-threshold (lower-outlier-threshold outlier-threshold death-changes)}}
+
       :total-cases (reduce + 0 (map :case-change days))
       :total-deaths (reduce + 0 (map :death-change days))
       :prepared (java.util.Date.)
