@@ -46,15 +46,15 @@
            (drop-fact-day! con)
            (create-fact-day! con)
            (timer "load facts"
-             (load-fact-day! con)))))
+                  (load-fact-day! con)))))
 
 (defn query [con args]
   (timer (str "query " args)
          (let [[country state county] args
                series (map shorten-keys (dw-series con country state county))]
            (spit
-             (str "output/" (html-file-name (file-name country state county)))
-             (report series))
+            (str "output/" (html-file-name (file-name country state county)))
+            (report series))
            (spit
             (str "output/" (json-file-name (file-name country state county)))
             (report-json series)))))
@@ -95,6 +95,19 @@
   (copy-file "web/.htaccess" "output/.htaccess")
   (copy-file "web/style.css" "output/style.css"))
 
+(defn publish-all [ds]
+  (let [all-places (all-places ds)]
+    (timer "all reports"
+           (doall
+            (pmap (partial query ds) all-places)))
+    (spit
+     "output/index.html"
+     (index-html all-places))
+    (spit
+     "output/index.json"
+     (index-json all-places)))
+  (copy-resources))
+
 (defn -main
   [action & args]
 
@@ -104,21 +117,13 @@
       (load-db con (first args)))
     (= "query" action)
     (query ds args)
+    (= "publish-all" action)
+    (publish-all ds)
     (= "all" action)
     (do
       (jdbc/with-transaction [con ds]
         (load-db con (first args)))
-      (let [all-places (all-places ds)]
-        (timer "all reports"
-               (doall
-                (pmap (partial query ds) all-places)))
-        (spit
-          "output/index.html"
-          (index-html all-places))
-        (spit
-         "output/index.json"
-         (index-json all-places)))
-      (copy-resources))))
+      (publish-all ds))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
