@@ -57,6 +57,7 @@
     (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
     (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
     (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
+    (re-matches #"\d+-\d+-\d+ \d+:\d+" s) (t/local-date "y-M-d H:m" s)
     :else (throw (IllegalArgumentException. (str "Bad date: " s)))))
 
 (defn fix-date [m] (update-in m [:date] parse-date))
