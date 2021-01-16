@@ -108,25 +108,39 @@
      (index-json all-places)))
   (copy-resources))
 
-(defn -main
-  [action & args]
+(defn usage-message []
+  (println "
+Usage:
+lein run all <path>
+lein run load <path>
+lein query 'US' 'Pennsylvania'
+")
+  )
 
-  (cond
-    (= "load" action)
-    (jdbc/with-transaction [con ds]
-      (load-db con (first args)))
-    (= "query" action)
-    (query ds args)
-    (= "publish-all" action)
-    (publish-all ds)
-    (= "all" action)
-    (do
-      (jdbc/with-transaction [con ds]
-        (load-db con (first args)))
-      (publish-all ds))))
+(defn -main
+  [& args]
+
+  (let [[action & args] args]
+       (cond
+         (= "load" action)
+         (jdbc/with-transaction [con ds]
+           (load-db con (first args)))
+         (= "query" action)
+         (query ds args)
+         (= "publish-all" action)
+         (publish-all ds)
+         (= "all" action)
+         (do
+           (jdbc/with-transaction [con ds]
+             (load-db con (first args)))
+           (publish-all ds))
+         :else
+         (usage-message))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+
+  (-main "load" "test/files")
 
   (-main "all" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
