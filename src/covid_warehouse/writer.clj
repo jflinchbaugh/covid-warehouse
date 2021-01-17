@@ -90,8 +90,10 @@
                   [:th.case-graph "Cases"]]]
                 [:tbody
                  (total-line days)
-                 (let [max-cases (apply max (drop-outliers (map :case-change-history days)))
-                       max-deaths (apply max (drop-outliers (map :death-change-history days)))
+                 (let [cases (drop-outliers (map :case-change-history days))
+                       deaths (drop-outliers (map :death-change-history days))
+                       max-cases (if (empty? cases) 0 (apply max cases))
+                       max-deaths (if (empty? deaths) 0 (apply max deaths))
                        case-line (partial graph-line "!" scale 75 max-cases)
                        death-line (partial graph-line "!" scale 50 max-deaths)]
                    (map (partial day-row case-line death-line) days))]]
@@ -104,16 +106,28 @@
         death-changes (map :death-change-history days)]
     (json/generate-string
      {:title title
-      :visualization {:cases {:max (apply max case-changes)
+      :visualization {:cases {:max (if (empty? case-changes)
+                                     0
+                                     (apply max case-changes))
                               :average (mean case-changes)
                               :stddev (stddev case-changes)
-                              :upper-outlier-threshold (upper-outlier-threshold outlier-threshold case-changes)
-                              :lower-outlier-threshold (lower-outlier-threshold outlier-threshold case-changes)}
-                      :deaths {:max (apply max death-changes)
+                              :upper-outlier-threshold (upper-outlier-threshold
+                                                         outlier-threshold
+                                                         case-changes)
+                              :lower-outlier-threshold (lower-outlier-threshold
+                                                         outlier-threshold
+                                                         case-changes)}
+                      :deaths {:max (if (empty? death-changes)
+                                      0
+                                      (apply max death-changes))
                                :average (mean death-changes)
                                :stddev (stddev death-changes)
-                               :upper-outlier-threshold (upper-outlier-threshold outlier-threshold death-changes)
-                               :lower-outlier-threshold (lower-outlier-threshold outlier-threshold death-changes)}}
+                               :upper-outlier-threshold (upper-outlier-threshold
+                                                          outlier-threshold
+                                                          death-changes)
+                               :lower-outlier-threshold (lower-outlier-threshold
+                                                          outlier-threshold
+                                                          death-changes)}}
 
       :total-cases (reduce + 0 (map :case-change days))
       :total-deaths (reduce + 0 (map :death-change days))

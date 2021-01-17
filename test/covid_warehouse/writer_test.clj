@@ -101,3 +101,15 @@
     (t/is (= [1 2] (drop-outliers-stddev 1 [1 2])))
     (t/is (= [1 2] (drop-outliers-stddev 1 [-4 1 2 10])))
     (t/is (= [-4 1 2 10] (drop-outliers-stddev 2 [-4 1 2 10])))))
+
+(t/deftest test-report
+  (t/testing "report with no days"
+    (let [html (report [])]
+      (t/is (re-find #"Date.*Deaths.*Deaths.*Cases.*Cases.*Total" html)))))
+
+(t/deftest test-report-json
+  (t/testing "json report with no days"
+    (let [html (report-json [])]
+      (t/is (re-find
+              #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
+              html)))))
