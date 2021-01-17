@@ -83,14 +83,15 @@
 (deftest test-fix-date
   (testing "fix-date"
     (are [in out] (= out (sut/fix-date in))
-      {:date "01/02/2010"} {:date (t/local-date "2010-01-02")}
-      {:date "01/02/10"} {:date (t/local-date "2010-01-02")}
-      {:date "01/02/2010 01:01"} {:date (t/local-date "2010-01-02")}
-      {:date "01/02/10 01:01"} {:date (t/local-date "2010-01-02")}
-      {:date "2010-01-02T01:01:01"} {:date (t/local-date "2010-01-02")}
-      {:date "2010-01-02 01:01:01"} {:date (t/local-date "2010-01-02")}
-      {:date "2010-01-02 01:01"} {:date (t/local-date "2010-01-02")}
+      {:date "01/02/2010"} {:date (t/local-date "2010-01-01")}
+      {:date "01/02/10"} {:date (t/local-date "2010-01-01")}
+      {:date "01/02/2010 01:01"} {:date (t/local-date "2010-01-01")}
+      {:date "01/02/10 01:01"} {:date (t/local-date "2010-01-01")}
+      {:date "2010-01-02T01:01:01"} {:date (t/local-date "2010-01-01")}
+      {:date "2010-01-02 01:01:01"} {:date (t/local-date "2010-01-01")}
+      {:date "2010-01-02 01:01"} {:date (t/local-date "2010-01-01")}
       ))
+
   (testing "fix-date error"
     (is (thrown? IllegalArgumentException (sut/fix-date {:date "12"}))
       )))
