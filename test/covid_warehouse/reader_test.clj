@@ -109,3 +109,9 @@
         (repeat 14 :f) :14)))
   (testing "cols->maps error"
     (is (thrown? IllegalArgumentException (sut/cols->maps (repeat 15 :f))))))
+
+(deftest test-read-csv
+  (testing "read-csv skips first line and merges all files"
+    (is (=
+          #{["file 2 line 2"] ["file 1 line 2"]}
+          (set (sut/read-csv "test/files"))))))
