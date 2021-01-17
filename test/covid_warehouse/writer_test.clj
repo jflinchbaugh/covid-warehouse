@@ -50,6 +50,13 @@
       (t/is (re-find #".*html.*body.*ul.*li.*href" content))
       (t/is (re-find #"US-PA.html.*US PA.*" content)))))
 
+(t/deftest test-index-json
+  (t/testing "index-json"
+    (let [content (index-json [["US"] ["US" "PA"]])]
+      (t/is (re-find #"COVID" content))
+      (t/is (re-find #"place.*US.*file.*US.json" content))
+      (t/is (re-find #"place.*US PA.*file.*US-PA.json" content)))))
+
 (t/deftest test-total-line
   (t/testing "total-line"
     (t/is (= [:tr
