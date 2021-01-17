@@ -113,5 +113,6 @@
 (deftest test-read-csv
   (testing "read-csv skips first line and merges all files"
     (is (=
-          #{["file 2 line 2"] ["file 1 line 2"]}
+          #{["file 2" "line 2"]
+            ["file 1" "line 2"]}
           (set (sut/read-csv "test/files"))))))
