@@ -46,7 +46,9 @@
 (defn graph-line [ch scale fit-size max-count count]
   (let [graph-max (scale max-count)
         graph-count (scale count)
-        block-size (if (zero? graph-max) 0 (/ graph-count graph-max))
+        block-size (if (zero? graph-max)
+                     0
+                     (/ graph-count graph-max))
         raw-size (int (* fit-size block-size))
         trunc-size (min fit-size raw-size)
         graph-tail (if (> raw-size fit-size) ">" "")]
