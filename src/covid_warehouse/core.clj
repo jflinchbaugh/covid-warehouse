@@ -135,7 +135,8 @@ lein query 'US' 'Pennsylvania'
              (load-db con (first args)))
            (publish-all ds))
          :else
-         (usage-message))))
+         (usage-message)))
+  (create-stage! ds))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
