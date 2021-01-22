@@ -1,2 +1,3 @@
 * DONE try insert! commands in place of execute!
   CLOSED: [2020-10-23 Fri 00:16]
+* an actual graphing lib in react app
