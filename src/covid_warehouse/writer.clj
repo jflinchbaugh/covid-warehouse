@@ -112,33 +112,33 @@
                               :average (mean case-changes)
                               :stddev (stddev case-changes)
                               :upper-outlier-threshold (upper-outlier-threshold
-                                                         outlier-threshold
-                                                         case-changes)
+                                                        outlier-threshold
+                                                        case-changes)
                               :lower-outlier-threshold (lower-outlier-threshold
-                                                         outlier-threshold
-                                                         case-changes)}
+                                                        outlier-threshold
+                                                        case-changes)}
                       :deaths {:max (if (empty? death-changes)
                                       0
                                       (apply max death-changes))
                                :average (mean death-changes)
                                :stddev (stddev death-changes)
                                :upper-outlier-threshold (upper-outlier-threshold
-                                                          outlier-threshold
-                                                          death-changes)
+                                                         outlier-threshold
+                                                         death-changes)
                                :lower-outlier-threshold (lower-outlier-threshold
-                                                          outlier-threshold
-                                                          death-changes)}}
+                                                         outlier-threshold
+                                                         death-changes)}}
 
       :total-cases (reduce + 0 (map :case-change days))
       :total-deaths (reduce + 0 (map :death-change days))
       :prepared (java.util.Date.)
       :days (map
-              #(select-keys
-                 % [:date
-                    :case-change
-                    :case-change-history
-                    :death-change
-                    :death-change-history])
+             #(select-keys
+               % [:date
+                  :case-change
+                  :case-change-history
+                  :death-change
+                  :death-change-history])
              days)})))
 
 (defn file-name [& lst]
@@ -163,7 +163,12 @@
            [:body
             [:h1 "COVID Data"]
             [:ul (map index-line places)]
-            [:div.prepared (java.util.Date.)]]))
+            [:div 
+             [:span.prepared (java.util.Date.)]
+             [:span.changelog
+              (e/link-to
+                "https://github.com/jflinchbaugh/covid-warehouse/commits/master"
+                "Changelog")]]]))
 
 (defn index-json [places]
   (json/generate-string
