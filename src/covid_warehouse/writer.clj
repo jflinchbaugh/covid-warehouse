@@ -133,7 +133,12 @@
       :total-deaths (reduce + 0 (map :death-change days))
       :prepared (java.util.Date.)
       :days (map
-             #(select-keys % [:date :case-change :death-change])
+              #(select-keys
+                 % [:date
+                    :case-change
+                    :case-change-history
+                    :death-change
+                    :death-change-history])
              days)})))
 
 (defn file-name [& lst]
