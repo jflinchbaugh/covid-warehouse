@@ -11,13 +11,19 @@
   (doall
    (cond
      (and (nil? state) (nil? county))
-     (dw-series-by-country ds {:country country})
+     (dw-rolling-series-by-country
+       ds
+       {:country country :rolling_days 7})
 
      (nil? county)
-     (dw-series-by-state ds {:country country :state state})
+     (dw-rolling-series-by-state
+       ds
+       {:country country :state state :rolling_days 7})
 
      :else
-     (dw-series-by-county ds {:country country :state state :county county}))))
+     (dw-rolling-series-by-county
+       ds
+       {:country country :state state :county county :rolling_days 7}))))
 
 (defmacro timer
   "Evaluates expr and prints the time it took.  Returns the value of expr."
