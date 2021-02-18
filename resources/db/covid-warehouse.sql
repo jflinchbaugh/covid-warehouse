@@ -142,20 +142,16 @@ select distinct
   l.country
   , l.state
   , l.county
-  , count(f.location_key) as count
 from
   dim_location l
 join fact_day f
   on l.location_key = f.location_key
+join dim_date hd
+  on hd.date_key = f.date_key
 where
-  l.country = :country
+  hd.date > dateadd(DAY, -7, current_timestamp())
+  and l.country = :country
   and l.state = :state
-group by
-  l.country
-  , l.state
-  , l.county
-having
-  count(f.location_key) > 10
 order by
   l.country
   , l.state
@@ -167,18 +163,15 @@ order by
 select distinct
   l.country
   , l.state
-  , count(f.location_key) as count
 from
   dim_location l
 join fact_day f
   on l.location_key = f.location_key
+join dim_date hd
+  on hd.date_key = f.date_key
 where
-  l.country = :country
-group by
-  l.country
-  , l.state
-having
-  count(f.location_key) > 10
+  hd.date > dateadd(DAY, -7, current_timestamp())
+  and l.country = :country
 order by
   l.country
   , l.state
@@ -188,15 +181,14 @@ order by
 -- :result :many
 select distinct
   l.country
-  , count(f.location_key) as count
 from
   dim_location l
 join fact_day f
   on l.location_key = f.location_key
-group by
-  l.country
-having
-  count(f.location_key) > 10
+join dim_date hd
+  on hd.date_key = f.date_key
+where
+  hd.date > dateadd(DAY, -7, current_timestamp())
 order by
   l.country
 
