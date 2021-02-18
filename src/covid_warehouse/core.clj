@@ -168,28 +168,27 @@ Usage:
 lein run all <path>
 lein run load <path>
 lein query 'US' 'Pennsylvania'
-")
-  )
+"))
 
 (defn -main
   [& args]
 
   (let [[action & args] args]
-       (cond
-         (= "load" action)
-         (jdbc/with-transaction [con ds]
-           (load-db con (first args)))
-         (= "query" action)
-         (query ds args)
-         (= "publish-all" action)
-         (publish-all ds)
-         (= "all" action)
-         (do
-           (jdbc/with-transaction [con ds]
-             (load-db con (first args)))
-           (publish-all ds))
-         :else
-         (usage-message)))
+    (cond
+      (= "load" action)
+      (jdbc/with-transaction [con ds]
+        (load-db con (first args)))
+      (= "query" action)
+      (query ds args)
+      (= "publish-all" action)
+      (publish-all ds)
+      (= "all" action)
+      (do
+        (jdbc/with-transaction [con ds]
+          (load-db con (first args)))
+        (publish-all ds))
+      :else
+      (usage-message)))
   (create-stage! ds))
 
 (comment
