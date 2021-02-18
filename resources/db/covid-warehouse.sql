@@ -145,7 +145,7 @@ select distinct
   , count(f.location_key) as count
 from
   dim_location l
-left join fact_day f
+join fact_day f
   on l.location_key = f.location_key
 where
   l.country = :country
@@ -170,7 +170,7 @@ select distinct
   , count(f.location_key) as count
 from
   dim_location l
-left join fact_day f
+join fact_day f
   on l.location_key = f.location_key
 where
   l.country = :country
@@ -191,7 +191,7 @@ select distinct
   , count(f.location_key) as count
 from
   dim_location l
-left join fact_day f
+join fact_day f
   on l.location_key = f.location_key
 group by
   l.country
