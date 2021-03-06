@@ -11,19 +11,19 @@
   (doall
    (cond
      (and (nil? state) (nil? county))
-     (dw-rolling-series-by-country
+     (dw-series-by-country
        ds
-       {:country country :rolling_days 7})
+       {:country country})
 
      (nil? county)
-     (dw-rolling-series-by-state
+     (dw-series-by-state
        ds
-       {:country country :state state :rolling_days 7})
+       {:country country :state state})
 
      :else
-     (dw-rolling-series-by-county
+     (dw-series-by-county
        ds
-       {:country country :state state :county county :rolling_days 7}))))
+       {:country country :state state :county county}))))
 
 (defmacro timer
   "Evaluates expr and prints the time it took.  Returns the value of expr."
@@ -54,10 +54,24 @@
            (timer "load facts"
                   (load-fact-day! con)))))
 
+(defn roll-history [days coll]
+  (->> coll
+    (partition-all days 1)
+    (map
+      (fn [d]
+        (let [deaths (map :death_change d)
+              cases (map :case_change d)
+              recoveries (map :recovery_change d)]
+          (merge
+            (first d)
+            {:death_change_history (int (mean deaths))
+             :case_change_history (int (mean cases))
+             :recovery_change_history (int (mean recoveries))}))))))
+
 (defn query [con args]
   (timer (str "query " args)
          (let [[country state county] args
-               series (map shorten-keys (dw-series con country state county))]
+               series (map shorten-keys (roll-history 7 (dw-series con country state county)))]
            (spit
             (str "output/" (html-file-name (file-name country state county)))
             (report series))
