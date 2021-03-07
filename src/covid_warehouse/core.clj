@@ -59,19 +59,19 @@
     (partition-all days 1)
     (map
       (fn [d]
-        (let [deaths (map :death_change d)
-              cases (map :case_change d)
-              recoveries (map :recovery_change d)]
+        (let [deaths (map :death-change d)
+              cases (map :case-change d)
+              recoveries (map :recovery-change d)]
           (merge
             (first d)
-            {:death_change_history (int (mean deaths))
-             :case_change_history (int (mean cases))
-             :recovery_change_history (int (mean recoveries))}))))))
+            {:death-change-history (int (mean deaths))
+             :case-change-history (int (mean cases))
+             :recovery-change-history (int (mean recoveries))}))))))
 
 (defn query [con args]
   (timer (str "query " args)
          (let [[country state county] args
-               series (map shorten-keys (roll-history 7 (dw-series con country state county)))]
+               series (roll-history 7 (map shorten-keys (dw-series con country state county)))]
            (spit
             (str "output/" (html-file-name (file-name country state county)))
             (report series))
