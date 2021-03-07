@@ -185,12 +185,6 @@ lein query 'US' 'Pennsylvania'
    {:country "US" :state "Pennsylvania" :county "York"}
    (juxt :date :case_change))
 
-  (diff-queries
-   dw-series-by-country
-   dw-rolling-series-by-country
-   {:country "US"}
-   (juxt :date :case_change :death_change))
-
   (jdbc/execute! ds ["select distinct country, state from dim_location"])
 
   (map (comp vals) (jdbc/execute! ds ["
