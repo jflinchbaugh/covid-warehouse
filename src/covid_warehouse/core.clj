@@ -91,11 +91,15 @@
                                (distinct-counties-by-state-country
                                 con
                                 {:country "US" :state "Pennsylvania"})))
-                  #(timer "states"
+                  #(timer "us states"
                           (map (juxt :country :state)
                                  (distinct-states-by-country con {:country "US"})))
+                  #(timer "canada provinces"
+                     (map (juxt :country :state)
+                       (distinct-states-by-country con {:country "Canada"})))
                   #(timer "countries"
                           (-> [["US"]
+                               ["Canada"]
                                ["Greece"]
                                ["Mexico"]
                                ["Italy"]
