@@ -99,6 +99,7 @@
                        (distinct-states-by-country con {:country "Canada"})))
                   #(timer "countries"
                           (-> [["US"]
+                               ["India"]
                                ["Canada"]
                                ["Greece"]
                                ["Mexico"]
