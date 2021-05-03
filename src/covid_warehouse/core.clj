@@ -100,6 +100,7 @@
                   #(timer "countries"
                           (-> [["US"]
                                ["India"]
+                               ["Isreal"]
                                ["Canada"]
                                ["Greece"]
                                ["Mexico"]
