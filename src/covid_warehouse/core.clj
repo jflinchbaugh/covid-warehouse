@@ -111,7 +111,6 @@
                                ["Japan"]
                                ["China"]
                                ["Korea, South"]
-                               ["Hong Kong"]
                                ["New Zealand"]])))))))
 
 (defn copy-file [src dest]
