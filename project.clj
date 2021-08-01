@@ -11,7 +11,7 @@
                  [com.h2database/h2 "1.4.200"]
                  [com.layerware/hugsql-adapter-next-jdbc "0.5.1"]
                  [com.layerware/hugsql-core "0.5.1"]
-                 [cheshire "5.10.0"]]
+                 [cheshire "5.10.1"]]
   :main ^:skip-aot covid-warehouse.core
   :target-path "target/%s"
   :jvm-opts ["-Xmx2048m" "-server"]
