@@ -84,9 +84,6 @@
        vals
        flatten))
 
-(defn has-changes? [r]
-  (not= [0 0 0] ((juxt :cases-change :deaths-change :recoveries-change) r)))
-
 (defn unify-countries
   "unify historic names of countries. if nothing matches, then pass through."
   [m]
@@ -108,7 +105,6 @@
    (pmap (comp unify-countries fix-numbers fix-date cols->maps #(map str/trim %)))
    latest-daily
    ammend-changes
-   (filter has-changes?)
    (remove overlap-location?)
    (map (partial insert-day! ds))
    doall
