@@ -5,25 +5,26 @@
             [covid-warehouse.writer :refer :all]
             [java-time :as t]
             [next.jdbc :as jdbc]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.pprint :as pp]))
 
 (defn dw-series [ds country state county]
   (doall
    (cond
      (and (nil? state) (nil? county))
      (dw-series-by-country
-       ds
-       {:country country})
+      ds
+      {:country country})
 
      (nil? county)
      (dw-series-by-state
-       ds
-       {:country country :state state})
+      ds
+      {:country country :state state})
 
      :else
      (dw-series-by-county
-       ds
-       {:country country :state state :county county}))))
+      ds
+      {:country country :state state :county county}))))
 
 (defmacro timer
   "Evaluates expr and prints the time it took.  Returns the value of expr."
@@ -56,17 +57,17 @@
 
 (defn roll-history [days coll]
   (->> coll
-    (partition-all days 1)
-    (map
-      (fn [d]
-        (let [deaths (map :death-change d)
-              cases (map :case-change d)
-              recoveries (map :recovery-change d)]
-          (merge
-            (first d)
-            {:death-change-history (int (mean deaths))
-             :case-change-history (int (mean cases))
-             :recovery-change-history (int (mean recoveries))}))))))
+       (partition-all days 1)
+       (map
+        (fn [d]
+          (let [deaths (map :death-change d)
+                cases (map :case-change d)
+                recoveries (map :recovery-change d)]
+            (merge
+             (first d)
+             {:death-change-history (int (mean deaths))
+              :case-change-history (int (mean cases))
+              :recovery-change-history (int (mean recoveries))}))))))
 
 (defn query [con args]
   (timer (str "query " args)
@@ -93,10 +94,10 @@
                                 {:country "US" :state "Pennsylvania"})))
                   #(timer "us states"
                           (map (juxt :country :state)
-                                 (distinct-states-by-country con {:country "US"})))
+                               (distinct-states-by-country con {:country "US"})))
                   #(timer "canada provinces"
-                     (map (juxt :country :state)
-                       (distinct-states-by-country con {:country "Canada"})))
+                          (map (juxt :country :state)
+                               (distinct-states-by-country con {:country "Canada"})))
                   #(timer "countries"
                           (-> [["US"]
                                ["India"]
@@ -141,24 +142,34 @@ lein run load <path>
 lein query 'US' 'Pennsylvania'
 "))
 
+(defn counts [ds]
+  {:facts (first (vals (count-facts ds)))
+   :dates (first (vals (count-dates ds)))
+   :locations (first (vals (count-locations ds)))
+   :stage (first (vals (count-stage ds)))})
+
 (defn -main
   [& args]
 
   (let [[action & args] args]
-    (cond
-      (= "load" action)
+    (case action
+      "load"
       (jdbc/with-transaction [con ds]
         (load-db con (first args)))
-      (= "query" action)
+
+      "query"
       (query ds args)
-      (= "publish-all" action)
+
+      "publish-all"
       (publish-all ds)
-      (= "all" action)
+
+      "all"
       (do
         (jdbc/with-transaction [con ds]
           (load-db con (first args)))
+        (pp/pprint (counts ds))
         (publish-all ds))
-      :else
+
       (usage-message)))
   (create-stage! ds))
 
@@ -207,5 +218,7 @@ lein query 'US' 'Pennsylvania'
   (map (comp (partial conj []) (juxt :country :state)) (distinct-states-by-country ds {:country "US"}))
 
   (distinct-states-by-country ds {:country "US"})
+
+  (first (vals (count-facts ds)))
 
   nil)

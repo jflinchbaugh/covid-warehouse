@@ -377,3 +377,35 @@ select
   , recovery_change
 from
   fact_day
+
+-- :name count-facts
+-- :command :query
+-- :result :one
+select
+  count(*) as count
+from
+  fact_day
+
+-- :name count-dates
+-- :command :query
+-- :result :one
+select
+  count(*) as count
+from
+  dim_date
+
+-- :name count-locations
+-- :command :query
+-- :result :one
+select
+  count(*) as count
+from
+  dim_location
+
+-- :name count-stage
+-- :command :query
+-- :result :one
+select
+  count(*) as count
+from
+  covid_day
