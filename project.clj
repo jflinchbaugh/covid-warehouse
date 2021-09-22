@@ -5,7 +5,7 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [org.clojure/data.csv "1.0.0"]
-                 [clojure.java-time "0.3.2"]
+                 [clojure.java-time "0.3.3"]
                  [hiccup "1.0.5"]
                  [seancorfield/next.jdbc "1.2.659"]
                  [com.h2database/h2 "1.4.200"]
