@@ -14,5 +14,5 @@
                  [cheshire "5.10.1"]]
   :main ^:skip-aot covid-warehouse.core
   :target-path "target/%s"
-  :jvm-opts ["-server" "-Xmx2500m" "-Xms2500m"]
+  :jvm-opts ["-server" "-Xmx3000m" "-Xms3000m"]
   :profiles {:uberjar {:aot :all}})
