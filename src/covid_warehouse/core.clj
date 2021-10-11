@@ -32,7 +32,7 @@
   [msg expr]
   `(let [start# (. System (nanoTime))
          ret# ~expr]
-     (println (str ~msg ": " (/ (double (- (. System (nanoTime)) start#)) 1000000.0) " msecs"))
+     (println (str ~msg ": " (/ (double (- (. System (nanoTime)) start#)) 1000000000.0) "s"))
      ret#))
 
 (defn load-db [con path]
