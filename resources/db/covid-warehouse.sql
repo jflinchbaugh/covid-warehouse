@@ -256,7 +256,6 @@ group by
   l.country
   , l.state
 
-
 -- :name dw-sums-by-county
 -- :command :query
 -- :result :many
