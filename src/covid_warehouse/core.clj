@@ -30,10 +30,13 @@
   "Evaluates expr and prints the time it took.  Returns the value of expr."
   {:added "1.0"}
   [msg expr]
-  `(let [start# (. System (nanoTime))
-         ret# ~expr]
-     (println (str ~msg ": " (/ (double (- (. System (nanoTime)) start#)) 1000000000.0) "s"))
-     ret#))
+  `(do
+     (println (str ~msg ": starting"))
+     (let [start# (. System (nanoTime))
+            ret# ~expr]
+        (println
+          (str ~msg ": " (/ (double (- (. System (nanoTime)) start#)) 1000000000.0) "s"))
+        ret#)))
 
 (defn load-db [con path]
   (timer "load data"
