@@ -140,9 +140,9 @@
 (defn usage-message []
   (println "
 Usage:
-lein run all <path> <output>
-lein run load <path>
-lein query <output> 'US' 'Pennsylvania'
+lein run all <input-dir> <output-dir>
+lein run load <input-dir>
+lein query <output-dir> 'US' 'Pennsylvania'
 "))
 
 (defn counts [ds]
