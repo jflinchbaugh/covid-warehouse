@@ -3,6 +3,7 @@
   (:require [clojure.string :as str]
             [covid-warehouse.db :refer :all]
             [covid-warehouse.writer :refer :all]
+            [covid-warehouse.timer :refer :all]
             [java-time :as t]
             [next.jdbc :as jdbc]
             [clojure.java.io :as io]
@@ -25,18 +26,6 @@
      (dw-series-by-county
       ds
       {:country country :state state :county county}))))
-
-(defmacro timer
-  "Evaluates expr and prints the time it took.  Returns the value of expr."
-  {:added "1.0"}
-  [msg expr]
-  `(do
-     (println (str ~msg ": starting"))
-     (let [start# (. System (nanoTime))
-            ret# ~expr]
-        (println
-          (str ~msg ": " (/ (double (- (. System (nanoTime)) start#)) 1000000000.0) "s"))
-        ret#)))
 
 (defn load-db [con path]
   (timer "load data"

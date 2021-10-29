@@ -1,6 +1,7 @@
 (ns covid-warehouse.db
   (:require [clojure.string :as str]
             [covid-warehouse.reader :refer :all]
+            [covid-warehouse.timer :refer :all]
             [hugsql.adapter.next-jdbc :as adapter]
             [hugsql.core :as hugsql]
             [java-time :as t]
