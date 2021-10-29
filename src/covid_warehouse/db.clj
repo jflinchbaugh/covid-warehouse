@@ -38,14 +38,18 @@
   [r]
   (into {} (map (fn [[k v]] [(stage-map k) v]) r)))
 
-(defn insert-day! [ds r]
+(defn insert-day!
+  "insert the day into the staging database"
+  [ds r]
   (sql/insert! ds :covid_day (rec->stage r)))
 
 (def location-grouping (juxt :country :state :county))
 
 (def table-keys (juxt :country :state :county :date))
 
-(defn calc-changes [lst new]
+(defn calc-changes
+  "given the list of days, calculate daily changes and add it to the list"
+  [lst new]
   (let [prev (last lst)]
     (conj
      lst
@@ -64,7 +68,9 @@
         (or (:recoveries new) 0)
         (or (:recoveries prev) 0))}))))
 
-(defn ammend-changes [col]
+(defn amend-changes
+  "iterate the whole list and add change fields for each day based on previous"
+  [col]
   (->> col
        (sort-by table-keys)
        (group-by location-grouping)
@@ -98,14 +104,18 @@
 (defn overlap-location? [r]
   (= ((juxt :country :state :county) r) ["US" "New York" "New York City"]))
 
+(defn trim-all-fields
+  [m]
+  (map str/trim m))
+
 (defn stage-data! [ds input-dir]
   (->>
    input-dir
    read-csv
-   (pmap (comp unify-countries fix-numbers fix-date cols->maps #(map str/trim %)))
-   latest-daily
-   ammend-changes
    (remove overlap-location?)
+   (pmap (comp unify-countries fix-numbers fix-date cols->maps trim-all-fields))
+   latest-daily
+   amend-changes
    (map (partial insert-day! ds))
    doall
    count))
