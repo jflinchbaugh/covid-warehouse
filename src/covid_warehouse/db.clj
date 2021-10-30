@@ -14,7 +14,8 @@
 
 ;; datasource
 (defonce ds (jdbc/get-datasource
-          {:jdbcUrl "jdbc:h2:file:./covid;MAX_COMPACT_TIME=120000"}))
+              {:jdbcUrl
+               "jdbc:h2:file:./covid;MAX_COMPACT_TIME=120000;CACHE_SIZE=130000"}))
 
 (defn create-stage! [ds]
   (drop-covid-day-location-index! ds)
