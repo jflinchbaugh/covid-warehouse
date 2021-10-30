@@ -13,7 +13,7 @@
   {:adapter (adapter/hugsql-adapter-next-jdbc)})
 
 ;; datasource
-(def ds (jdbc/get-datasource
+(defonce ds (jdbc/get-datasource
           {:jdbcUrl "jdbc:h2:file:./covid;MAX_COMPACT_TIME=120000"}))
 
 (defn create-stage! [ds]
