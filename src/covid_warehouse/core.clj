@@ -107,10 +107,10 @@
                                ["New Zealand"]])))))))
 
 (defn copy-file [src dest]
-  (io/copy (io/file (io/resource src)) (io/file dest)))
+  (io/copy (io/input-stream (io/resource src)) (io/file dest)))
 
 (defn copy-resources [dest]
-  (copy-file "web/.htaccess" (str dest "/.htaccess"))
+  (copy-file "web/htaccess" (str dest "/.htaccess"))
   (copy-file "web/style.css" (str dest "/style.css")))
 
 (defn publish-all [ds dest]
