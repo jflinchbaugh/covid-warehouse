@@ -4,6 +4,7 @@ all: container
 
 uberjar:
 	lein clean
+	lein test
 	lein uberjar
 
 .PHONY: container
