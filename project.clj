@@ -15,5 +15,5 @@
                  [cheshire "5.10.1"]]
   :main covid-warehouse.core
   :target-path "target/%s"
-  :jvm-opts ["-server" "-XX:MaxRAMPercentage=50"]
+  :jvm-opts ["-server" "-XX:MaxRAMPercentage=80 -XX:MinRAMPercentage=80"]
   :profiles {:uberjar {:aot :all}})
