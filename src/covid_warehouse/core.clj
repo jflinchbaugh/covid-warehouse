@@ -30,20 +30,24 @@
 (defn load-db [con path]
   (timer "load data"
          (do
-           (create-stage! con)
+           (timer "create staging table"
+             (create-stage! con))
            (timer "stage data"
                   (stage-data!
                    con
                    path))
 
-           (create-dims! con)
+           (timer "create dimension tables"
+             (create-dims! con))
            (timer "load locations"
                   (load-dim-location! con))
            (timer "load dates"
                   (load-dim-date! con))
 
-           (drop-fact-day! con)
-           (create-fact-day! con)
+           (timer "create fact table"
+             (do 
+               (drop-fact-day! con)
+               (create-fact-day! con)))
            (timer "load facts"
                   (load-fact-day! con)))))
 
