@@ -39,10 +39,32 @@
   [r]
   (into {} (map (fn [[k v]] [(stage-map k) v]) r)))
 
-(defn insert-day!
-  "insert the day into the staging database"
-  [ds r]
-  (sql/insert! ds :covid_day (rec->stage r)))
+(defn insert-days!
+  ""
+  [ds recs]
+  (jdbc/execute-batch! ds
+    "insert into covid_day (
+       date,
+       country,
+       state,
+       county,
+       case_total,
+       case_change,
+       death_total,
+       death_change,
+       recovery_total,
+       recovery_change
+    ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    (map
+      (comp
+        (juxt
+          :date :country :state :county
+          :case_total :case_change
+          :death_total :death_change
+          :recovery_total :recovery_change)
+        rec->stage)
+      recs)
+    {}))
 
 (def location-grouping (juxt :country :state :county))
 
@@ -117,7 +139,7 @@
    (pmap (comp unify-countries fix-numbers fix-date cols->maps trim-all-fields))
    latest-daily
    amend-changes
-   (map (partial insert-day! ds))
+   (insert-days! ds)
    doall
    count))
 
