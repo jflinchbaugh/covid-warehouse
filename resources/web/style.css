@@ -31,3 +31,11 @@ td, th {
     font-style: italic;
     font-size: 75%;
 }
+
+.death-graph meter {
+    width: 15vw;
+}
+
+.case-graph meter {
+    width: 35vw;
+}

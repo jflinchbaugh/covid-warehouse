@@ -4,20 +4,6 @@
             [clojure.string :as str]
             [hiccup.util :as util]))
 
-(t/deftest test-graph-line
-  (t/testing "graph-line"
-    (t/are [expected actual] (= expected actual)
-      "" (graph-line "!" log-scale 5 1 0)
-      "!!!!!" (graph-line "!" log-scale 5 1 1)
-      "!!!!!" (graph-line "!" log-scale 5 1 1)
-      "!!!" (graph-line "!" log-scale 5 2 1)
-      "!!" (graph-line "!" log-scale 5 3 1)
-      "!" (graph-line "!" log-scale 5 5 1)
-      "!" (graph-line "!" log-scale 5 6 1)
-      "xx" (graph-line "xx" log-scale 5 5 1)
-      "!!!>" (graph-line "!" log-scale 3 5 10)
-      "" (graph-line "!" log-scale 1 0 1))))
-
 (t/deftest test-file-name
   (t/testing "file-name"
     (t/are [expected actual] (= expected actual)
@@ -67,18 +53,6 @@
               [:td.case-graph ""]]
              (total-line [{:death-change 1 :case-change 12}
                           {:death-change 9 :case-change 8}])))))
-
-(t/deftest test-log-scale
-  (t/testing "log-scale"
-    (t/is (= 0.0 (log-scale 0)))
-    (t/is (= 0.0 (log-scale -1)))
-    (t/is (= (Math/log 2.0) (log-scale 1)))))
-
-(t/deftest test-linear-scale
-  (t/testing "linear-scale"
-    (t/is (= 0 (linear-scale 0)))
-    (t/is (= 0 (linear-scale -1)))
-    (t/is (= 1 (linear-scale 1)))))
 
 (t/deftest test-sqr
   (t/testing "sqr"

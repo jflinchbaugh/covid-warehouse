@@ -20,10 +20,6 @@
      [:td.case-change cases]
      [:td.case-graph (case-line case-change-history)]]))
 
-(defn log-scale [count] (Math/log (inc (if (neg? count) 0 count))))
-
-(defn linear-scale [count] (max count 0))
-
 (defn mean [coll]
   (let [size (count coll)]
     (if (zero? size) 0.0
@@ -43,16 +39,8 @@
 (defn lower-outlier-threshold [threshold coll]
   (- (mean coll) (* threshold (stddev coll))))
 
-(defn graph-line [ch scale fit-size max-count count]
-  (let [graph-max (scale max-count)
-        graph-count (scale count)
-        block-size (if (zero? graph-max)
-                     0
-                     (/ graph-count graph-max))
-        raw-size (int (* fit-size block-size))
-        trunc-size (min fit-size raw-size)
-        graph-tail (if (> raw-size fit-size) ">" "")]
-    (str/join (conj (vec (repeat trunc-size ch)) graph-tail))))
+(defn graph-bar [max-count count]
+    [:meter {:min 0 :max max-count :high max-count :value count}])
 
 (defn total-line [days]
   [:tr
@@ -70,7 +58,6 @@
 
 (defn report [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
-        scale linear-scale
         drop-outliers (partial drop-outliers-stddev outlier-threshold)]
     (str
      (p/html5 {:lang "en"}
@@ -94,8 +81,8 @@
                        deaths (drop-outliers (map :death-change-history days))
                        max-cases (if (empty? cases) 0 (apply max cases))
                        max-deaths (if (empty? deaths) 0 (apply max deaths))
-                       case-line (partial graph-line "!" scale 75 max-cases)
-                       death-line (partial graph-line "!" scale 50 max-deaths)]
+                       case-line (partial graph-bar max-cases)
+                       death-line (partial graph-bar max-deaths)]
                    (map (partial day-row case-line death-line) days))]]
                [:div.prepared (java.util.Date.)]]))))
 
