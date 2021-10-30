@@ -45,7 +45,7 @@
                   (load-dim-date! con))
 
            (timer "create fact table"
-             (do 
+             (do
                (drop-fact-day! con)
                (create-fact-day! con)))
            (timer "load facts"
@@ -122,13 +122,16 @@
     (timer "all reports"
            (doall
              (pmap (partial query ds dest) all-places)))
-    (spit
-      (str dest "/index.html")
-      (index-html all-places))
-    (spit
-      (str dest "/index.json")
-     (index-json all-places)))
-  (copy-resources dest))
+    (timer "writing index.html"
+      (spit
+        (str dest "/index.html")
+        (index-html all-places)))
+    (timer "writing index.json"
+      (spit
+        (str dest "/index.json")
+        (index-json all-places))))
+  (timer "copy resources"
+    (copy-resources dest)))
 
 (defn usage-message []
   (println "
