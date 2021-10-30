@@ -172,51 +172,17 @@ lein query <output-dir> 'US' 'Pennsylvania'
       (usage-message))))
 
 (comment
-  (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+  (-main "load"
+    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
-  (-main "load" "test/files")
-
-  (-main "all" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports" "output")
+  (-main "all"
+    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
+    "output")
 
   (-main "query" "output" "US" "Pennsylvania")
 
-  (-main "query" "output" "US" "New York")
-
-  (-main "query" "output" "US" "Alabama")
-
-  (-main "query" "output" "Afghanistan")
-
   (-main "query" "output" "US" "Pennsylvania" "Lancaster")
 
-  (let [[country state county] ["US" "Pennsylvania" "Lancaster"]
-        con ds
-        series (map shorten-keys (dw-series con country state county))]
-    (report series))
-
-  (diff-queries
-   dw-series-by-county
-   dw-series-by-county
-   {:country "US" :state "Pennsylvania" :county "York"}
-   (juxt :date :case_change))
-
   (jdbc/execute! ds ["select distinct country, state from dim_location"])
-
-  (map (comp vals) (jdbc/execute! ds ["
-    select l.country as country, l.state as state, l.county as county, sum(death_change) as deaths
-    from fact_day f
-    join dim_location l on l.location_key = f.location_key
-    where l.country = 'US'
-    and l.state = 'New York'
-    group by l.country, l.state, l.county
-    having deaths > 0
-    order by deaths desc"]))
-
-  (map (comp (partial conj []) :country) (distinct-countries ds))
-
-  (map (comp (partial conj []) (juxt :country :state)) (distinct-states-by-country ds {:country "US"}))
-
-  (distinct-states-by-country ds {:country "US"})
-
-  (first (vals (count-facts ds)))
 
   nil)
