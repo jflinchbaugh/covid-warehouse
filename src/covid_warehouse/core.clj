@@ -169,8 +169,7 @@ lein query <output-dir> 'US' 'Pennsylvania'
         (pp/pprint (counts ds))
         (publish-all ds (second args)))
 
-      (usage-message)))
-  (create-stage! ds))
+      (usage-message))))
 
 (comment
   (-main "load" "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
