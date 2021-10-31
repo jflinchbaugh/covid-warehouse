@@ -29,28 +29,28 @@
 
 (defn get-csv-files [path]
   (->> path
-    io/file
-    .list
-    (filter (partial re-matches #".*\.csv"))))
-
-(defn read-checksums [path]
-  (->> path
-    get-csv-files
-    (map
-      (fn [f] [f (->> f (io/file path) digest/md5)]))))
-
-(defn read-csv [path]
-  (->> path
        io/file
        .list
-       (filter (partial re-matches #".*\.csv"))
-       (map
-        (comp
-         rest
-         csv/read-csv
-         io/reader
-         (partial io/file path)))
-       (reduce concat)))
+       (filter (partial re-matches #".*\.csv"))))
+
+(defn read-checksums [path]
+  (->>
+   path
+   get-csv-files
+   (map
+    (fn [f] [f (->> f (io/file path) digest/md5)]))))
+
+(defn read-csv [path]
+  (->>
+   path
+   get-csv-files
+   (map
+    (comp
+     rest
+     csv/read-csv
+     io/reader
+     (partial io/file path)))
+   (reduce concat)))
 
 (defn cols->maps [line]
   ((case (count line)
@@ -59,21 +59,21 @@
      12 read-12
      14 read-14
      (throw
-       (IllegalArgumentException. (str (count line) " is too many: " (seq line)))))
+      (IllegalArgumentException. (str (count line) " is too many: " (seq line)))))
    line))
 
 (defn parse-date [s]
   (t/adjust
-    (cond
-      (re-matches #"\d+/\d+/\d{4}" s) (t/local-date "M/d/yyyy" s)
-      (re-matches #"\d+/\d+/\d{2}" s) (t/local-date "M/d/yy" s)
-      (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date "M/d/yy H:m" s)
-      (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
-      (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
-      (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
-      (re-matches #"\d+-\d+-\d+ \d+:\d+" s) (t/local-date "y-M-d H:m" s)
-      :else (throw (IllegalArgumentException. (str "Bad date: " s))))
-    t/minus (t/days 1)))
+   (cond
+     (re-matches #"\d+/\d+/\d{4}" s) (t/local-date "M/d/yyyy" s)
+     (re-matches #"\d+/\d+/\d{2}" s) (t/local-date "M/d/yy" s)
+     (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date "M/d/yy H:m" s)
+     (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
+     (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
+     (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
+     (re-matches #"\d+-\d+-\d+ \d+:\d+" s) (t/local-date "y-M-d H:m" s)
+     :else (throw (IllegalArgumentException. (str "Bad date: " s))))
+   t/minus (t/days 1)))
 
 (defn fix-date [m] (update-in m [:date] parse-date))
 
