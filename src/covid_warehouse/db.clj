@@ -18,8 +18,12 @@
                "jdbc:h2:file:./covid;MAX_COMPACT_TIME=120000;CACHE_SIZE=130000"}))
 
 (defn create-stage! [ds]
+  (drop-input-file! ds)
+  (create-input-file! ds)
+
   (drop-covid-day-location-index! ds)
   (drop-covid-day! ds)
+
   (create-covid-day! ds)
   (create-covid-day-location-index! ds))
 
@@ -131,6 +135,21 @@
 (defn trim-all-fields
   [m]
   (map str/trim m))
+
+(defn insert-input-file! [ds [file-name checksum]]
+  (sql/insert!
+    ds
+    :input_file
+    {:file_name file-name
+     :checksum checksum}))
+
+(defn stage-checksums! [ds input-dir]
+  (->>
+    input-dir
+    read-checksums
+    (map (partial insert-input-file! ds))
+    doall
+    count))
 
 (defn stage-data! [ds input-dir]
   (->>

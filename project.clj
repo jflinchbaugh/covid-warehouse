@@ -12,7 +12,8 @@
                  [com.h2database/h2 "1.4.200"]
                  [com.layerware/hugsql-adapter-next-jdbc "0.5.1"]
                  [com.layerware/hugsql-core "0.5.1"]
-                 [cheshire "5.10.1"]]
+                 [cheshire "5.10.1"]
+                 [org.clj-commons/digest "1.4.100"]]
   :main covid-warehouse.core
   :target-path "target/%s"
   :jvm-opts ["-server" "-XX:MaxRAMPercentage=80" "-XX:MinRAMPercentage=80"]

@@ -32,11 +32,12 @@
          (do
            (timer "create staging table"
              (create-stage! con))
+           (timer "load checksums"
+             (stage-checksums! con path))
            (timer "stage data"
                   (stage-data!
                    con
                    path))
-
            (timer "create dimension tables"
              (create-dims! con))
            (timer "load locations"

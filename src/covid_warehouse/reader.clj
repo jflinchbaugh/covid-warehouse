@@ -2,7 +2,8 @@
   (:require [clojure.data.csv :as csv]
             [java-time :as t]
             [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clj-commons.digest :as digest]))
 
 (defn read-6 [[n2 n3 n4 n5 n6 n7]]
   {:county ""
@@ -25,6 +26,18 @@
    :recoveries n9})
 
 (def read-14 read-12)
+
+(defn get-csv-files [path]
+  (->> path
+    io/file
+    .list
+    (filter (partial re-matches #".*\.csv"))))
+
+(defn read-checksums [path]
+  (->> path
+    get-csv-files
+    (map
+      (fn [f] [f (->> f (io/file path) digest/md5)]))))
 
 (defn read-csv [path]
   (->> path

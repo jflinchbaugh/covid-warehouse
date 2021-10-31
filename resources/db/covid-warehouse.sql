@@ -1,3 +1,28 @@
+-- :name drop-input-file!
+-- :command :execute
+-- :result :raw
+drop table input_file if exists
+
+-- :name create-input-file!
+-- :command :execute
+-- :result :raw
+create table input_file (
+  file_name varchar,
+  checksum varchar,
+  primary key (file_name)
+)
+
+-- :name input-files
+-- :command :query
+-- :result :many
+select
+  file_name,
+  checksum
+from
+  input_file
+order by
+  file_name
+
 -- :name drop-covid-day!
 -- :command :execute
 -- :result :raw
