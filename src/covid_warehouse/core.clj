@@ -30,7 +30,7 @@
 (defn load-db [con path]
   (timer "load data"
          (do
-           (timer "create staging table"
+           (timer "create staging tables"
              (create-stage! con))
            (timer "load checksums"
              (stage-checksums! con path))
