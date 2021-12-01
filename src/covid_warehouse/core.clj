@@ -100,7 +100,6 @@
                                ["India"]
                                ["Israel"]
                                ["Canada"]
-                               ["Greece"]
                                ["Mexico"]
                                ["Italy"]
                                ["France"]
@@ -109,7 +108,9 @@
                                ["Japan"]
                                ["China"]
                                ["Korea, South"]
-                               ["New Zealand"]])))))))
+                               ["New Zealand"]
+                               ["South Africa"]
+                               ["Germany"]])))))))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
