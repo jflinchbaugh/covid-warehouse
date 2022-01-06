@@ -2,7 +2,7 @@ FROM debian:unstable
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get install -y openjdk-16-jre-headless
+    && apt-get install -y openjdk-17-jre-headless git
 
 RUN mkdir -p /app /data/in /data/out
 
