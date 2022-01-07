@@ -10,8 +10,10 @@ fi
 
 cd /app
 
-java -server -XX:MaxRAMPercentage=80 -XX:MinRAMPercentage=80 \
-     -jar app.jar \
-     all \
-     /data/in/csse_covid_19_data/csse_covid_19_daily_reports \
-     /data/out
+java \
+    -server \
+    -XX:MaxRAMPercentage=50 -XX:MinRAMPercentage=50 \
+    -jar app.jar \
+    all \
+    /data/in/csse_covid_19_data/csse_covid_19_daily_reports \
+    /data/out
