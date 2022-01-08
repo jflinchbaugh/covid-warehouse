@@ -97,15 +97,15 @@ drop table dim_date if exists
 -- :command :execute
 -- :result :raw
 create table dim_date (
-  date_key uuid primary key
-  , date varchar
-  , raw_date date
-  , year int
-  , month int
-  , day_of_month int
-  , day_of_week varchar
-  , unique (date)
-  , unique (raw_date))
+  "date_key" uuid primary key
+  , "date" varchar
+  , "raw_date" date
+  , "year" int
+  , "month" int
+  , "day_of_month" int
+  , "day_of_week" varchar
+  , unique ("date")
+  , unique ("raw_date"))
 
 -- :name drop-fact-day!
 -- :command :execute
@@ -127,17 +127,17 @@ create table fact_day (
 -- :command :query
 -- :result :many
 select
-  date_key
-  , date
-  , raw_date
-  , year
-  , month
-  , day_of_month
-  , day_of_week
+  d."date_key"
+  , d."date"
+  , d."raw_date"
+  , d."year"
+  , d."month"
+  , d."day_of_month"
+  , d."day_of_week"
 from
-  dim_date
+  dim_date d
 order by
-  date
+  d."date"
 
 -- :name dim-locations
 -- :command :query
@@ -172,9 +172,9 @@ from
 join fact_day f
   on l.location_key = f.location_key
 join dim_date hd
-  on hd.date_key = f.date_key
+  on hd."date_key" = f.date_key
 where
-  hd.date > dateadd(DAY, -7, current_timestamp())
+  hd."date" > dateadd(DAY, -7, current_timestamp())
   and l.country = :country
   and l.state = :state
 order by
@@ -193,9 +193,9 @@ from
 join fact_day f
   on l.location_key = f.location_key
 join dim_date hd
-  on hd.date_key = f.date_key
+  on hd."date_key" = f.date_key
 where
-  hd.date > dateadd(DAY, -7, current_timestamp())
+  hd."date" > dateadd(DAY, -7, current_timestamp())
   and l.country = :country
 order by
   l.country
@@ -211,9 +211,9 @@ from
 join fact_day f
   on l.location_key = f.location_key
 join dim_date hd
-  on hd.date_key = f.date_key
+  on hd."date_key" = f.date_key
 where
-  hd.date > dateadd(DAY, -7, current_timestamp())
+  hd."date" > dateadd(DAY, -7, current_timestamp())
 order by
   l.country
 
@@ -252,7 +252,7 @@ select
   , sum(f.recovery_change) as recovery_change
 from fact_day f
 join dim_date d
-  on d.date_key = f.date_key
+  on d."date_key" = f.date_key
 join dim_location l
   on l.location_key = f.location_key
 where
@@ -271,7 +271,7 @@ select
   , sum(f.recovery_change) as recovery_change
 from fact_day f
 join dim_date d
-  on d.date_key = f.date_key
+  on d."date_key" = f.date_key
 join dim_location l
   on l.location_key = f.location_key
 where
@@ -293,7 +293,7 @@ select
   , sum(f.recovery_change) as recovery_change
 from fact_day f
 join dim_date d
-  on d.date_key = f.date_key
+  on d."date_key" = f.date_key
 join dim_location l
   on l.location_key = f.location_key
 where
@@ -309,38 +309,38 @@ group by
 -- :command :query
 -- :result :many
 select
-  d.date
-  , d.year
-  , d.month
-  , d.day_of_month
+  d."date"
+  , d."year"
+  , d."month"
+  , d."day_of_month"
   , l.country
   , sum(f.case_change) as case_change
   , sum(f.death_change) as death_change
   , sum(f.recovery_change) as recovery_change
 from dim_date d
 left join fact_day f
-  on d.date_key = f.date_key
+  on d."date_key" = f.date_key
 left join dim_location l
   on l.location_key = f.location_key
 where
   l.country = :country
 group by
-  d.date
-  , d.year
-  , d.month
-  , d.day_of_month
+  d."date"
+  , d."year"
+  , d."month"
+  , d."day_of_month"
   , l.country
 order by
-  d.date desc
+  d."date" desc
 
 -- :name dw-series-by-state
 -- :command :query
 -- :result :many
 select
-  d.date
-  , d.year
-  , d.month
-  , d.day_of_month
+  d."date"
+  , d."year"
+  , d."month"
+  , d."day_of_month"
   , l.country
   , l.state
   , sum(f.case_change) as case_change
@@ -348,30 +348,30 @@ select
   , sum(f.recovery_change) as recovery_change
 from dim_date d
 left join fact_day f
-  on d.date_key = f.date_key
+  on d."date_key" = f.date_key
 left join dim_location l
   on l.location_key = f.location_key
 where
   l.country = :country
   and l.state = :state
 group by
-  d.date
-  , d.year
-  , d.month
-  , d.day_of_month
+  d."date"
+  , d."year"
+  , d."month"
+  , d."day_of_month"
   , l.country
   , l.state
 order by
-  d.date desc
+  d."date" desc
 
 -- :name dw-series-by-county
 -- :command :query
 -- :result :many
 select
-  d.date
-  , d.year
-  , d.month
-  , d.day_of_month
+  d."date"
+  , d."year"
+  , d."month"
+  , d."day_of_month"
   , l.country
   , l.state
   , l.county
@@ -380,7 +380,7 @@ select
   , f.recovery_change
 from dim_date d
 left join fact_day f
-  on d.date_key = f.date_key
+  on d."date_key" = f.date_key
 left join dim_location l
   on l.location_key = f.location_key
 where
@@ -388,7 +388,7 @@ where
   and l.state = :state
   and l.county = :county
 order by
-  d.date desc
+  d."date" desc
 
 -- :name fact-days
 -- :command :query

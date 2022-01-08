@@ -6,7 +6,8 @@
             [hugsql.core :as hugsql]
             [java-time :as t]
             [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]))
+            [next.jdbc.sql :as sql]
+            [next.jdbc.quoted :refer [ansi]]))
 
 ;; regular SQL functions
 (hugsql/def-db-fns "db/covid-warehouse.sql"
@@ -202,8 +203,7 @@
          :month-of-year
          :day-of-month
          :day-of-week)
-        day-of-week
-        (str/capitalize (.name (t/day-of-week dow)))]
+        day-of-week (str/capitalize (.name (t/day-of-week dow)))]
     (sql/insert!
      ds
      :dim_date
@@ -213,7 +213,8 @@
       :year year
       :month month
       :day_of_month day-of-month
-      :day_of_week day-of-week})))
+      :day_of_week day-of-week}
+     {:column-fn ansi})))
 
 (defn pad-dates [cnt dates]
   (if (empty? dates)
