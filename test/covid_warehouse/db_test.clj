@@ -28,37 +28,35 @@
          (pad-dates 2 [{:date (t/sql-date "2020-01-03")}])))))
 
 (deftest test-create-stage
-  (let [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
-    (is
-     (create-stage! con))))
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (is (create-stage! con))))
 
 (deftest test-create-dims
-  (let [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
-    (is
-     (create-dims! con))))
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (is (create-dims! con))))
 
 (deftest test-fact-day
-  (let [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is
-     (do (drop-fact-day! con)
+      (do (drop-fact-day! con)
          (create-fact-day! con)))))
 
 (deftest test-dim-date
-  (let [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})
-        _ (drop-dim-date! con)
-        _ (create-dim-date! con)
-        _ (insert-dim-date! con [(t/local-date "2020-01-02")])
-        inserted-dates (dim-dates con)
-        only-date (first inserted-dates)]
-    (is (= 1 (count inserted-dates)) "there's 1 date in the dim")
-    (testing "date_dim in db has key and raw value"
-      (are [field] (field only-date)
-        :date_key
-        :raw_date))
-    (testing "date_dim in db has parse values"
-      (are [value field] (= value (field only-date))
-        2020 :year
-        1 :month
-        2 :day_of_month
-        "Thursday" :day_of_week
-        ))))
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (let [_ (drop-dim-date! con)
+          _ (create-dim-date! con)
+          _ (insert-dim-date! con [(t/local-date "2020-01-02")])
+          inserted-dates (dim-dates con)
+          only-date (first inserted-dates)]
+      (is (= 1 (count inserted-dates)) "there's 1 date in the dim")
+      (testing "date dim has key and raw value set"
+        (are [field] (field only-date)
+          :date_key
+          :raw_date))
+      (testing "date dim in db has parsed values"
+        (are [value field] (= value (field only-date))
+          2020 :year
+          1 :month
+          2 :day_of_month
+          "Thursday" :day_of_week
+          )))))
