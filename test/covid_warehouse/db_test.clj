@@ -39,19 +39,19 @@
 (deftest test-vals->dims
   (is (= [nil nil nil nil nil] (vals->dims {} {} nil)) "nil vals")
   (is (=
-        [nil nil :cases :deaths :recoveries]
-        (vals->dims
-          {}
-          {}
-          [:date :country :state :county :cases :deaths :recoveries]))
-    "values get copied along, but keys are nil when not found")
+       [nil nil :cases :deaths :recoveries]
+       (vals->dims
+        {}
+        {}
+        [:date :country :state :county :cases :deaths :recoveries]))
+      "values get copied along, but keys are nil when not found")
   (is (=
-        [:dk :lk :cases :deaths :recoveries]
-        (vals->dims
-          {[:date] :dk}
-          {[:country :state :county] :lk}
-          [:date :country :state :county :cases :deaths :recoveries]))
-    "values get copied along, but keys are nil when not found"))
+       [:dk :lk :cases :deaths :recoveries]
+       (vals->dims
+        {[:date] :dk}
+        {[:country :state :county] :lk}
+        [:date :country :state :county :cases :deaths :recoveries]))
+      "values get copied along, but keys are nil when not found"))
 
 (deftest test-overlap-location
   (is (overlap-location? {:country "US" :state "New York" :county "New York City"}))
@@ -67,8 +67,35 @@
     "UK" "United Kingdom"
     "Taiwan" "Taiwan*"
     "Mainland China" "China"
-    "South Korea" "Korea, South")
-  )
+    "South Korea" "Korea, South"))
+
+(deftest test-latest-daily
+  (is (= [] (latest-daily nil)))
+  (is (= [] (latest-daily [])))
+  (is (= [{:country "c1"
+           :state "s1"
+           :county "c1"
+           :date "d1"}
+          {:country "c2"
+           :state "s2"
+           :county "c2"
+           :date "d2"
+           :val 2}]
+         (latest-daily
+          [{:country "c2"
+            :state "s2"
+            :county "c2"
+            :date "d2"
+            :val :dropped}
+           {:country "c2"
+            :state "s2"
+            :county "c2"
+            :date "d2"
+            :val 2}
+           {:country "c1"
+            :state "s1"
+            :county "c1"
+            :date "d1"}]))))
 
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
@@ -81,7 +108,7 @@
 (deftest test-fact-day
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is
-      (do (drop-fact-day! con)
+     (do (drop-fact-day! con)
          (create-fact-day! con)))))
 
 (deftest test-dim-date
@@ -101,8 +128,7 @@
           2020 :year
           1 :month
           2 :day_of_month
-          "Thursday" :day_of_week
-          )))))
+          "Thursday" :day_of_week)))))
 
 (deftest test-dim-location
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
@@ -119,8 +145,7 @@
         (are [value field] (= value (field only-location))
           "US" :country
           "Pennsylvania" :state
-          "Lancaster" :county
-          )))))
+          "Lancaster" :county)))))
 
 (deftest test-fact-day
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
@@ -138,8 +163,7 @@
           location-key :location_key
           1 :case_change
           2 :death_change
-          3 :recovery_change
-          )))))
+          3 :recovery_change)))))
 
 (deftest test-covid-day
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
@@ -163,5 +187,4 @@
           "Lancaster" :county
           2 :case_change
           4 :death_change
-          6 :recovery_change
-          )))))
+          6 :recovery_change)))))
