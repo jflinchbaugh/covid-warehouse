@@ -44,7 +44,21 @@
          (create-fact-day! con)))))
 
 (deftest test-dim-date
-  (let [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
-    (is
-      (do (drop-dim-date! con)
-          (create-dim-date! con)))))
+  (let [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})
+        _ (drop-dim-date! con)
+        _ (create-dim-date! con)
+        _ (insert-dim-date! con [(t/local-date "2020-01-02")])
+        inserted-dates (dim-dates con)
+        only-date (first inserted-dates)]
+    (is (= 1 (count inserted-dates)) "there's 1 date in the dim")
+    (testing "date_dim in db has key and raw value"
+      (are [field] (field only-date)
+        :date_key
+        :raw_date))
+    (testing "date_dim in db has parse values"
+      (are [value field] (= value (field only-date))
+        2020 :year
+        1 :month
+        2 :day_of_month
+        "Thursday" :day_of_week
+        ))))
