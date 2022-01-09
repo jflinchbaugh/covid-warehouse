@@ -69,7 +69,11 @@
 (defn query [con dest args]
   (timer (str "query " args)
          (let [[country state county] args
-               series (roll-history 7 (map shorten-keys (dw-series con country state county)))]
+               series (roll-history
+                        7
+                        (map
+                          shorten-keys
+                          (dw-series con country state county)))]
            (spit
             (str dest "/" (html-file-name (file-name country state county)))
             (report series))
