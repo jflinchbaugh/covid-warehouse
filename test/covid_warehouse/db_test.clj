@@ -31,6 +31,28 @@
   (is (= {} (shorten-keys nil)))
   (is (= {:db-field "y"} (shorten-keys {:TABLE/DB_FIELD "y"}))))
 
+(deftest test-dim->lookup
+  (is (= {} (dim->lookup nil)))
+  (is (= {[:b :c] :a
+          [:e :f] :d} (dim->lookup [[:a :b :c] [:d :e :f]]))))
+
+(deftest test-vals->dims
+  (is (= [nil nil nil nil nil] (vals->dims {} {} nil)) "nil vals")
+  (is (=
+        [nil nil :cases :deaths :recoveries]
+        (vals->dims
+          {}
+          {}
+          [:date :country :state :county :cases :deaths :recoveries]))
+    "values get copied along, but keys are nil when not found")
+  (is (=
+        [:dk :lk :cases :deaths :recoveries]
+        (vals->dims
+          {[:date] :dk}
+          {[:country :state :county] :lk}
+          [:date :country :state :county :cases :deaths :recoveries]))
+    "values get copied along, but keys are nil when not found"))
+
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is (create-stage! con))))
