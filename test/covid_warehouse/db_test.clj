@@ -57,6 +57,10 @@
   (is (overlap-location? {:country "US" :state "New York" :county "New York City"}))
   (is (not (overlap-location? {}))))
 
+(deftest test-trim-all-fields
+  (is (= [] (trim-all-fields nil)))
+  (is (= ["x" "y"] (trim-all-fields [" x " " y "]))))
+
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is (create-stage! con))))
