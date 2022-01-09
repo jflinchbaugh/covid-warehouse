@@ -167,9 +167,9 @@ lein query <output-dir> 'US' 'Pennsylvania'
       "all"
       (do
         (jdbc/with-transaction [con ds]
-          (load-db con (first args)))
-        (pp/pprint (counts ds))
-        (publish-all ds (second args)))
+          (load-db con (first args))
+          (pp/pprint (counts con))
+          (publish-all con (second args))))
 
       (usage-message))))
 
