@@ -129,7 +129,9 @@
   (is (= [] (na-fields nil)))
   (is (= [] (na-fields [])))
   (is (= ["a" nil] (na-fields ["a" nil])))
-  (is (= ["a" "N/A"] (na-fields ["a" ""]))))
+  (is (= ["a" "N/A"] (na-fields ["a" ""])))
+  (is (= ["a" 1] (na-fields ["a" 1])))
+  )
 
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
