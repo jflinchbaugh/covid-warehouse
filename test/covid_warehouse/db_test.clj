@@ -60,3 +60,21 @@
           2 :day_of_month
           "Thursday" :day_of_week
           )))))
+
+(deftest test-dim-location
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (let [_ (drop-dim-location! con)
+          _ (create-dim-location! con)
+          _ (insert-dim-location! con ["US" "Pennsylvania" "Lancaster"])
+          inserted-locations (dim-locations con)
+          only-location (first inserted-locations)]
+      (is (= 1 (count inserted-locations)) "there's 1 location in the dim")
+      (testing "location dim has key set"
+        (are [field] (field only-location)
+          :location_key))
+      (testing "location dim in db has parsed values"
+        (are [value field] (= value (field only-location))
+          "US" :country
+          "Pennsylvania" :state
+          "Lancaster" :county
+          )))))
