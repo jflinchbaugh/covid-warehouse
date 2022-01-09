@@ -27,6 +27,10 @@
           {:date (t/sql-date "2020-01-03")}]
          (pad-dates 2 [{:date (t/sql-date "2020-01-03")}])))))
 
+(deftest test-shorten-keys
+  (is (= {} (shorten-keys nil)))
+  (is (= {:db-field "y"} (shorten-keys {:TABLE/DB_FIELD "y"}))))
+
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is (create-stage! con))))
