@@ -31,24 +31,24 @@
   (timer "load data"
          (do
            (timer "create staging tables"
-             (create-stage! con))
+                  (create-stage! con))
            (timer "load checksums"
-             (stage-checksums! con path))
+                  (stage-checksums! con path))
            (timer "stage data"
                   (stage-data!
                    con
                    path))
            (timer "create dimension tables"
-             (create-dims! con))
+                  (create-dims! con))
            (timer "load locations"
                   (load-dim-location! con))
            (timer "load dates"
                   (load-dim-date! con))
 
            (timer "create fact table"
-             (do
-               (drop-fact-day! con)
-               (create-fact-day! con)))
+                  (do
+                    (drop-fact-day! con)
+                    (create-fact-day! con)))
            (timer "load facts"
                   (load-fact-day! con)))))
 
@@ -123,17 +123,17 @@
   (let [all-places (all-places ds)]
     (timer "all reports"
            (doall
-             (pmap (partial query ds dest) all-places)))
+            (pmap (partial query ds dest) all-places)))
     (timer "writing index.html"
-      (spit
-        (str dest "/index.html")
-        (index-html all-places)))
+           (spit
+            (str dest "/index.html")
+            (index-html all-places)))
     (timer "writing index.json"
-      (spit
-        (str dest "/index.json")
-        (index-json all-places))))
+           (spit
+            (str dest "/index.json")
+            (index-json all-places))))
   (timer "copy resources"
-    (copy-resources dest)))
+         (copy-resources dest)))
 
 (defn usage-message []
   (println "
@@ -155,18 +155,20 @@ lein query <output-dir> 'US' 'Pennsylvania'
   (let [[action & args] args]
     (case action
       "load"
-      (jdbc/with-transaction [con ds]
+      (with-open [con (jdbc/get-connection ds)]
         (load-db con (first args)))
 
       "query"
-      (query ds (first args) (rest args))
+      (with-open [con (jdbc/get-connection ds)]
+        (query con (first args) (rest args)))
 
       "publish-all"
-      (publish-all ds (first args))
+      (with-open [con (jdbc/get-connection ds)]
+        (publish-all con (first args)))
 
       "all"
       (do
-        (jdbc/with-transaction [con ds]
+        (with-open [con (jdbc/get-connection ds)]
           (load-db con (first args))
           (pp/pprint (counts con))
           (publish-all con (second args))))
@@ -175,11 +177,11 @@ lein query <output-dir> 'US' 'Pennsylvania'
 
 (comment
   (-main "load"
-    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+         "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
   (-main "all"
-    "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
-    "output")
+         "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
+         "output")
 
   (-main "query" "output" "US" "Pennsylvania")
 
