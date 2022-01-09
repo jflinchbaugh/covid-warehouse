@@ -123,8 +123,7 @@
           :recoveries 4
           :recoveries-change 3}]
         (amend-changes [{:x 1 :cases 1 :deaths 1 :recoveries 1}
-                        {:x 2 :cases 2 :deaths 3 :recoveries 4}])))
-  )
+                        {:x 2 :cases 2 :deaths 3 :recoveries 4}]))))
 
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
