@@ -61,6 +61,15 @@
   (is (= [] (trim-all-fields nil)))
   (is (= ["x" "y"] (trim-all-fields [" x " " y "]))))
 
+(deftest test-unify-countries
+  (are [in out] (= {:x :y :country out} (unify-countries {:x :y :country in}))
+    "x" "x"
+    "UK" "United Kingdom"
+    "Taiwan" "Taiwan*"
+    "Mainland China" "China"
+    "South Korea" "Korea, South")
+  )
+
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is (create-stage! con))))
