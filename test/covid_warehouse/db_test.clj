@@ -101,37 +101,36 @@
   (is (= [] (amend-changes nil)))
   (is (= [] (amend-changes [])))
   (is (=
-        [{:x 1 :cases-change 0 :deaths-change 0 :recoveries-change 0}]
-        (amend-changes [{:x 1}])))
+       [{:x 1 :cases-change 0 :deaths-change 0 :recoveries-change 0}]
+       (amend-changes [{:x 1}])))
   (is (=
-        [{:x 1 :cases-change 0 :deaths-change 0 :recoveries-change 0}
-         {:x 2 :cases-change 0 :deaths-change 0 :recoveries-change 0}]
-        (amend-changes [{:x 1} {:x 2}])))
+       [{:x 1 :cases-change 0 :deaths-change 0 :recoveries-change 0}
+        {:x 2 :cases-change 0 :deaths-change 0 :recoveries-change 0}]
+       (amend-changes [{:x 1} {:x 2}])))
   (is (=
-        [{:x 1
-          :cases 1
-          :cases-change 1
-          :deaths 1
-          :deaths-change 1
-          :recoveries 1
-          :recoveries-change 1}
-         {:x 2
-          :cases 2
-          :cases-change 1
-          :deaths 3
-          :deaths-change 2
-          :recoveries 4
-          :recoveries-change 3}]
-        (amend-changes [{:x 1 :cases 1 :deaths 1 :recoveries 1}
-                        {:x 2 :cases 2 :deaths 3 :recoveries 4}]))))
+       [{:x 1
+         :cases 1
+         :cases-change 1
+         :deaths 1
+         :deaths-change 1
+         :recoveries 1
+         :recoveries-change 1}
+        {:x 2
+         :cases 2
+         :cases-change 1
+         :deaths 3
+         :deaths-change 2
+         :recoveries 4
+         :recoveries-change 3}]
+       (amend-changes [{:x 1 :cases 1 :deaths 1 :recoveries 1}
+                       {:x 2 :cases 2 :deaths 3 :recoveries 4}]))))
 
 (deftest test-na-fields
   (is (= [] (na-fields nil)))
   (is (= [] (na-fields [])))
   (is (= ["a" nil] (na-fields ["a" nil])))
   (is (= ["a" "N/A"] (na-fields ["a" ""])))
-  (is (= ["a" 1] (na-fields ["a" 1])))
-  )
+  (is (= ["a" 1] (na-fields ["a" 1]))))
 
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
