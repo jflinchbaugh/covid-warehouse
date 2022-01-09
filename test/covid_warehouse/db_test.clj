@@ -125,6 +125,12 @@
         (amend-changes [{:x 1 :cases 1 :deaths 1 :recoveries 1}
                         {:x 2 :cases 2 :deaths 3 :recoveries 4}]))))
 
+(deftest test-na-fields
+  (is (= [] (na-fields nil)))
+  (is (= [] (na-fields [])))
+  (is (= ["a" nil] (na-fields ["a" nil])))
+  (is (= ["a" "N/A"] (na-fields ["a" ""]))))
+
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is (create-stage! con))))
