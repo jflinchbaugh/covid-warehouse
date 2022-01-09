@@ -78,3 +78,47 @@
           "Pennsylvania" :state
           "Lancaster" :county
           )))))
+
+(deftest test-fact-day
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (let [_ (drop-fact-day! con)
+          _ (create-fact-day! con)
+          date-key (uuid)
+          location-key (uuid)
+          _ (insert-fact-day! con [date-key location-key 1 2 3])
+          inserted-facts (fact-days con)
+          only-fact (first inserted-facts)]
+      (is (= 1 (count inserted-facts)) "there's 1 fact")
+      (testing "fact day in db has parsed values"
+        (are [value field] (= value (field only-fact))
+          date-key :date_key
+          location-key :location_key
+          1 :case_change
+          2 :death_change
+          3 :recovery_change
+          )))))
+
+(deftest test-covid-day
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (let [_ (drop-covid-day! con)
+          _ (create-covid-day! con)
+          _ (insert-days! con [{:date "2020-01-02"
+                                :country "US"
+                                :state "Pennsylvania"
+                                :county "Lancaster"
+                                :cases-change 2
+                                :deaths-change 4
+                                :recoveries-change 6}])
+          inserted-days (staged-data con)
+          only-day (first inserted-days)]
+      (is (= 1 (count inserted-days)) "there's 1 day staged")
+      (testing "staged day in db has parsed values"
+        (is (= #inst "2020-01-02T05" (:date only-day)))
+        (are [value field] (= value (field only-day))
+          "US" :country
+          "Pennsylvania" :state
+          "Lancaster" :county
+          2 :case_change
+          4 :death_change
+          6 :recovery_change
+          )))))
