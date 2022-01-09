@@ -53,6 +53,10 @@
           [:date :country :state :county :cases :deaths :recoveries]))
     "values get copied along, but keys are nil when not found"))
 
+(deftest test-overlap-location
+  (is (overlap-location? {:country "US" :state "New York" :county "New York City"}))
+  (is (not (overlap-location? {}))))
+
 (deftest test-create-stage
   (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
     (is (create-stage! con))))
