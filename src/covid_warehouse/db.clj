@@ -46,7 +46,7 @@
   (into {} (map (fn [[k v]] [(stage-map k) v]) r)))
 
 (defn insert-days!
-  ""
+  "batch insert all the incoming staging records"
   [ds recs]
   (jdbc/execute-batch! ds
     "insert into covid_day (
