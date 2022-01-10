@@ -223,3 +223,10 @@
           2 :case_change
           4 :death_change
           6 :recovery_change)))))
+
+(deftest test-input-file
+  (with-open [con (jdbc/get-connection {:jdbcUrl "jdbc:h2:mem:covid"})]
+    (let [_ (drop-input-file! con)
+          _ (create-input-file! con)
+          _ (insert-input-file! con ["fn" "1"])]
+      (is true))))
