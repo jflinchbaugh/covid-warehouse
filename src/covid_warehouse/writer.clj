@@ -5,7 +5,7 @@
             [clojure.string :as str]
             [cheshire.core :as json]))
 
-(def outlier-threshold 4)
+(def outlier-threshold 5)
 
 (defn day-row [case-line death-line day]
   (let [case-change-history (:case-change-history day)
