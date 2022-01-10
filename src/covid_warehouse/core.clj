@@ -70,10 +70,10 @@
   (timer (str "query " args)
          (let [[country state county] args
                series (roll-history
-                        7
-                        (map
-                          shorten-keys
-                          (dw-series con country state county)))]
+                       7
+                       (map
+                        shorten-keys
+                        (dw-series con country state county)))]
            (spit
             (str dest "/" (html-file-name (file-name country state county)))
             (report series))
@@ -171,11 +171,10 @@ lein query <output-dir> 'US' 'Pennsylvania'
         (publish-all con (first args)))
 
       "all"
-      (do
-        (with-open [con (jdbc/get-connection ds)]
-          (load-db con (first args))
-          (pp/pprint (counts con))
-          (publish-all con (second args))))
+      (with-open [con (jdbc/get-connection ds)]
+        (load-db con (first args))
+        (pp/pprint (counts con))
+        (publish-all con (second args)))
 
       (usage-message))))
 
