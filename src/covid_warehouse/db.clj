@@ -50,16 +50,16 @@
   [ds recs]
   (jdbc/execute-batch! ds
     "insert into covid_day (
-       date,
-       country,
-       state,
-       county,
-       case_total,
-       case_change,
-       death_total,
-       death_change,
-       recovery_total,
-       recovery_change
+       \"date\",
+       \"country\",
+       \"state\",
+       \"county\",
+       \"case_total\",
+       \"case_change\",
+       \"death_total\",
+       \"death_change\",
+       \"recovery_total\",
+       \"recovery_change\"
     ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     (map
       (comp
@@ -142,7 +142,8 @@
     ds
     :input_file
     {:file_name file-name
-     :checksum checksum}))
+     :checksum checksum},
+    {:column-fn ansi}))
 
 (defn stage-checksums! [ds input-dir]
   (->>
@@ -174,7 +175,8 @@
    {:location_key (uuid)
     :country country
     :state state
-    :county county}))
+    :county county}
+   {:column-fn ansi}))
 
 (defn na-fields
   "replace empty strings with N/A"
@@ -257,7 +259,8 @@
     :location_key location-key
     :case_change case-change
     :death_change death-change
-    :recovery_change recovery-change}))
+    :recovery_change recovery-change}
+   {:column-fn ansi}))
 
 (defn dim->lookup [dim]
   (reduce
