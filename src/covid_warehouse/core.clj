@@ -27,9 +27,9 @@
       ds
       {:country country :state state :county county}))))
 
-(defn load-db [ds path]
+(defn load-db [con path]
   (timer "load data"
-         (with-open [con (jdbc/get-connection ds)]
+         (do
            (timer "create staging tables"
                   (create-stage! con))
            (timer "load checksums"
@@ -66,21 +66,20 @@
               :case-change-history (int (mean cases))
               :recovery-change-history (int (mean recoveries))}))))))
 
-(defn query [ds dest args]
+(defn query [con dest args]
   (timer (str "query " args)
-    (with-open [con (jdbc/get-connection ds)] 
-      (let [[country state county] args
-            series (roll-history
-                     7
-                     (map
-                       shorten-keys
-                       (dw-series con country state county)))]
-        (spit
-          (str dest "/" (html-file-name (file-name country state county)))
-          (report series))
-        (spit
-          (str dest "/" (json-file-name (file-name country state county)))
-          (report-json series))))))
+         (let [[country state county] args
+               series (roll-history
+                       7
+                       (map
+                        shorten-keys
+                        (dw-series con country state county)))]
+           (spit
+            (str dest "/" (html-file-name (file-name country state county)))
+            (report series))
+           (spit
+            (str dest "/" (json-file-name (file-name country state county)))
+            (report-json series)))))
 
 (defn all-places
   "list all the places we care to see"
@@ -149,11 +148,10 @@ lein query <output-dir> 'US' 'Pennsylvania'
 "))
 
 (defn counts [ds]
-  (with-open [con (jdbc/get-connection ds)]
-    {:facts (first (vals (count-facts con)))
-     :dates (first (vals (count-dates con)))
-     :locations (first (vals (count-locations con)))
-     :stage (first (vals (count-stage con)))}))
+  {:facts (first (vals (count-facts ds)))
+   :dates (first (vals (count-dates ds)))
+   :locations (first (vals (count-locations ds)))
+   :stage (first (vals (count-stage ds)))})
 
 (defn -main
   [& args]
@@ -161,19 +159,22 @@ lein query <output-dir> 'US' 'Pennsylvania'
   (let [[action & args] args]
     (case action
       "load"
-      (load-db ds (first args))
+      (with-open [con (jdbc/get-connection ds)]
+        (load-db con (first args)))
 
       "query"
-      (query ds (first args) (rest args))
+      (with-open [con (jdbc/get-connection ds)]
+        (query con (first args) (rest args)))
 
       "publish-all"
-      (publish-all ds (first args))
+      (with-open [con (jdbc/get-connection ds)]
+        (publish-all con (first args)))
 
       "all"
-      (do
-        (load-db ds (first args))
-        (pp/pprint (counts ds))
-        (publish-all ds (second args)))
+      (with-open [con (jdbc/get-connection ds)]
+        (load-db con (first args))
+        (pp/pprint (counts con))
+        (publish-all con (second args)))
 
       (usage-message))))
 
