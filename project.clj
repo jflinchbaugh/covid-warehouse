@@ -9,7 +9,7 @@
                  [clojure.java-time "0.3.3"]
                  [hiccup "1.0.5"]
                  [seancorfield/next.jdbc "1.2.659"]
-                 [com.h2database/h2 "2.0.206"]
+                 [com.h2database/h2 "2.1.210"]
                  [com.layerware/hugsql-adapter-next-jdbc "0.5.1"]
                  [com.layerware/hugsql-core "0.5.1"]
                  [cheshire "5.10.1"]
