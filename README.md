@@ -20,6 +20,6 @@ java -server -XX:MaxRAMPercentage=80 -XX:MinRAMPercentage=80 \
 ```
 podman run --rm -it \
        -v ./output:/data/out \
-       -v ../COVID-19/csse_covid_19_data/csse_covid_19_daily_reports:/data/in \
+       -v ../COVID-19:/data/in \
        localhost/covid-warehouse
 ```
