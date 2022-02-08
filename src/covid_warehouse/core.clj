@@ -189,6 +189,6 @@ lein query <output-dir> 'US' 'Pennsylvania'
 
   (-main "query" "output" "US" "Pennsylvania" "Lancaster")
 
-  (jdbc/execute! ds ["select distinct country, state from dim_location"])
+  (jdbc/execute! ds ["select distinct \"country\", \"state\" from dim_location"])
 
   nil)
