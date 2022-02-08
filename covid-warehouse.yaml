@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: covid-warehouse
+  name: covid-warehouse-pod
+spec:
+  restartPolicy: Never
+  containers:
+    - image: localhost/covid-warehouse:latest
+      name: covid-warehouse
+      securityContext:
+        allowPrivilegeEscalation: true
+        privileged: false
+        readOnlyRootFilesystem: false
+      volumeMounts:
+        - mountPath: /data/out
+          name: out-pvc
+        - mountPath: /data/in
+          name: in-pvc
+  volumes:
+    - name: out-pvc
+      persistentVolumeClaim:
+        claimName: out
+    - name: in-pvc
+      persistentVolumeClaim:
+        claimName: in
