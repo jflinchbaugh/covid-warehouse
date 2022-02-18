@@ -16,5 +16,8 @@
                  [org.clj-commons/digest "1.4.100"]]
   :main covid-warehouse.core
   :target-path "target/%s"
-  :jvm-opts ["-server" "-XX:MaxRAMPercentage=80" "-XX:MinRAMPercentage=80"]
+  :jvm-opts ["-server"
+             "-XX:+UseParallelGC"
+             "-XX:MaxRAMPercentage=80"
+             "-XX:MinRAMPercentage=80"]
   :profiles {:uberjar {:aot :all}})
