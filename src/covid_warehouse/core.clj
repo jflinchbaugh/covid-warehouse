@@ -66,19 +66,24 @@
 
 (defn query [ds dest args]
   (timer (str "query " args)
-    (with-open [con (jdbc/get-connection ds)] 
-      (let [[country state county] args
-            series (roll-history
-                     7
-                     (map
-                       shorten-keys
-                       (dw-series con country state county)))]
-        (spit
-          (str dest "/" (html-file-name (file-name country state county)))
-          (report series))
-        (spit
-          (str dest "/" (json-file-name (file-name country state county)))
-          (report-json series))))))
+         (with-open [con (jdbc/get-connection ds)]
+           (let [[country state county] args
+                 series (roll-history
+                         7
+                         (map
+                          shorten-keys
+                          (dw-series con country state county)))]
+             (spit
+              (str dest "/" (html-file-name (file-name country state county)))
+              (report series))
+             (spit
+              (str dest "/" (json-file-name (file-name country state county)))
+              (report-json series))))))
+
+(defn sql-date-last-week
+  "provide a sql date for a week ago for cutoff dates"
+  []
+  (t/sql-date (t/adjust (t/local-date) t/minus (t/days 7))))
 
 (defn all-places
   "list all the places we care to see"
@@ -91,13 +96,21 @@
                           (map (juxt :country :state :county)
                                (distinct-counties-by-state-country
                                 con
-                                {:country "US" :state "Pennsylvania"})))
+                                {:cutoff-date (sql-date-last-week)
+                                 :country "US"
+                                 :state "Pennsylvania"})))
                   #(timer "us states"
                           (map (juxt :country :state)
-                               (distinct-states-by-country con {:country "US"})))
+                               (distinct-states-by-country
+                                con
+                                {:cutoff-date (sql-date-last-week)
+                                 :country "US"})))
                   #(timer "canada provinces"
                           (map (juxt :country :state)
-                               (distinct-states-by-country con {:country "Canada"})))
+                               (distinct-states-by-country
+                                con
+                                {:cutoff-date (sql-date-last-week)
+                                 :country "Canada"})))
                   #(timer "countries"
                           (-> [["US"]
                                ["India"]

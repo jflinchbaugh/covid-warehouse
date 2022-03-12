@@ -1,23 +1,31 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  labels:
-    app: covid-warehouse
   name: covid-warehouse-pod
 spec:
   restartPolicy: Never
   containers:
-    - image: localhost/covid-warehouse:latest
-      name: covid-warehouse
-      securityContext:
-        allowPrivilegeEscalation: true
-        privileged: false
-        readOnlyRootFilesystem: false
+    - name: covid-warehouse
+      image: localhost/covid-warehouse:latest
+      env:
+        - name: COVID_DB_URL
+          value: jdbc:postgresql://covid-warehouse-pod-db/covid
+        - name: COVID_DB_USER
+          value: covid
+        - name: COVID_DB_PASSWORD
+          value: password
       volumeMounts:
         - mountPath: /data/out
           name: out-pvc
         - mountPath: /data/in
           name: in-pvc
+    - name: db
+      image: postgres:14-alpine
+      env:
+        - name: POSTGRES_USER
+          value: covid
+        - name: POSTGRES_PASSWORD
+          value: password
   volumes:
     - name: out-pvc
       persistentVolumeClaim:

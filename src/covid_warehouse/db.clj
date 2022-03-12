@@ -15,13 +15,18 @@
 
 ;; datasource
 (defonce ds (jdbc/get-datasource
-              {:jdbcUrl (str/join
-                          ";"
-                          ["jdbc:h2:file:./covid"
-                           "MAX_COMPACT_TIME=45000"
-                           ;;"MAX_COMPACT_TIME=120000"
-                           ;;"CACHE_SIZE=130000"
-                           ])}))
+               {:jdbcUrl
+                (or
+                 (System/getenv "COVID_DB_URL")
+                 "jdbc:h2:file:./covid;MAX_COMPACT_TIME=45000")
+                :user
+                (or
+                 (System/getenv "COVID_DB_USER")
+                 nil)
+                :password
+                (or
+                 (System/getenv "COVID_DB_PASSWORD")
+                 nil)}))
 
 (defn create-stage! [ds]
   (drop-input-file! ds)

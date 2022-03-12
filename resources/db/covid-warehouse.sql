@@ -174,7 +174,7 @@ join fact_day f
 join dim_date hd
   on hd."date_key" = f."date_key"
 where
-  hd."date" > dateadd(DAY, -7, current_timestamp())
+  hd."date" > :cutoff-date
   and l."country" = :country
   and l."state" = :state
 order by
@@ -195,7 +195,7 @@ join fact_day f
 join dim_date hd
   on hd."date_key" = f."date_key"
 where
-  hd."date" > dateadd(DAY, -7, current_timestamp())
+  hd."date" > :cutoff-date
   and l."country" = :country
 order by
   l."country"
@@ -213,7 +213,7 @@ join fact_day f
 join dim_date hd
   on hd."date_key" = f."date_key"
 where
-  hd."date" > dateadd(DAY, -7, current_timestamp())
+  hd."date" > :cutoff-date
 order by
   l."country"
 
