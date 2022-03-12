@@ -254,6 +254,10 @@
 
 ;; facts
 
+(defn create-facts! [con]
+  (drop-fact-day! con)
+  (create-fact-day! con))
+
 (defn insert-fact-day!
   [ds
    [date-key location-key case-change death-change recovery-change]]

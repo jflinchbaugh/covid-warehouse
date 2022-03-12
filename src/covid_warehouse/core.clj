@@ -46,9 +46,7 @@
                   (load-dim-date! con))
 
            (timer "create fact table"
-                  (do
-                    (drop-fact-day! con)
-                    (create-fact-day! con)))
+                  (create-facts! con))
            (timer "load facts"
                   (load-fact-day! con)))))
 
