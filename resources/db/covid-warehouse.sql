@@ -1,7 +1,7 @@
 -- :name drop-input-file!
 -- :command :execute
 -- :result :raw
-drop table input_file if exists
+drop table if exists input_file
 
 -- :name create-input-file!
 -- :command :execute
@@ -26,7 +26,7 @@ order by
 -- :name drop-covid-day!
 -- :command :execute
 -- :result :raw
-drop table covid_day if exists
+drop table if exists covid_day
 
 -- :name create-covid-day!
 -- :command :execute
@@ -48,7 +48,7 @@ create table covid_day (
 -- :name drop-covid-day-location-index!
 -- :command :execute
 -- :result :raw
-drop index covid_day_location_idx if exists
+drop index if exists covid_day_location_idx
 
 -- :name create-covid-day-location-index!
 -- :command :execute
@@ -62,7 +62,7 @@ create index covid_day_location_idx on covid_day (
 -- :name drop-dim-location!
 -- :command :execute
 -- :result :raw
-drop table dim_location if exists
+drop table if exists dim_location
 
 -- :name create-dim-location!
 -- :command :execute
@@ -77,7 +77,7 @@ create table dim_location (
 -- :name drop-dim-location-index!
 -- :command :execute
 -- :result :raw
-drop index dim_location_idx if exists
+drop index if exists dim_location_idx
 
 -- :name create-dim-location-index!
 -- :command :execute
@@ -91,7 +91,7 @@ create index dim_location_idx on dim_location (
 -- :name drop-dim-date!
 -- :command :execute
 -- :result :raw
-drop table dim_date if exists
+drop table if exists dim_date
 
 -- :name create-dim-date!
 -- :command :execute
@@ -110,7 +110,7 @@ create table dim_date (
 -- :name drop-fact-day!
 -- :command :execute
 -- :result :raw
-drop table fact_day if exists
+drop table if exists fact_day
 
 -- :name create-fact-day!
 -- :command :execute
