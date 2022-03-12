@@ -12,7 +12,7 @@
                  [com.h2database/h2 "2.1.210"]
                  [com.layerware/hugsql-adapter-next-jdbc "0.5.1"]
                  [com.layerware/hugsql-core "0.5.1"]
-                 [cheshire "5.10.1"]
+                 [cheshire "5.10.2"]
                  [org.clj-commons/digest "1.4.100"]]
   :main covid-warehouse.core
   :target-path "target/%s"
