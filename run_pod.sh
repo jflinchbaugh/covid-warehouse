@@ -1,15 +1,21 @@
-#!/bin/sh
+#!/bin/bash
+
+function cleanup() {
+    echo "Shutting down..."
+    podman pod rm -f covid-warehouse
+    exit
+}
 
 make
 
 podman play kube covid-warehouse.yaml
 
+trap cleanup EXIT
+
 podman pod ls
 podman ps
 
 podman logs -f covid-warehouse-etl
-
-podman pod rm -f covid-warehouse
 
 # dump output volume locally 
 volume=out
