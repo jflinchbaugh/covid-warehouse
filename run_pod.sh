@@ -1,5 +1,7 @@
 #!/bin/sh
 
+make
+
 podman play kube covid-warehouse.yaml
 
 podman pod ls
@@ -10,7 +12,7 @@ podman logs -f covid-warehouse-etl
 podman pod rm -f covid-warehouse
 
 # dump output volume locally 
-volume=in
+volume=out
 localdir=output
 
 mkdir -p $localdir
