@@ -93,40 +93,37 @@
           (apply concat
                  (pcalls
                   #(timer "counties"
-                          (map (juxt :country :state :county)
+                     [["US" "Pennsylvania" "York"]
+                      ["US" "Pennsylvania" "Lancaster"]
+                      ["US" "Pennsylvania" "Adams"]
+                      ["US" "Pennsylvania" "Philadelphia"]
+                      ["US" "Pennsylvania" "Lebanon"]
+                      ["US" "Pennsylvania" "Dauphin"]]
+                          #_(map (juxt :country :state :county)
                                (distinct-counties-by-state-country
                                 con
                                 {:cutoff-date (sql-date-last-week)
                                  :country "US"
                                  :state "Pennsylvania"})))
                   #(timer "us states"
-                          (map (juxt :country :state)
+                     [["US" "Pennsylvania"]
+                      ["US" "Delaware"]
+                      ["US" "Florida"]
+                      ["US" "New York"]
+                      ["US" "California"]]
+                          #_(map (juxt :country :state)
                                (distinct-states-by-country
                                 con
                                 {:cutoff-date (sql-date-last-week)
                                  :country "US"})))
-                  #(timer "canada provinces"
-                          (map (juxt :country :state)
-                               (distinct-states-by-country
-                                con
-                                {:cutoff-date (sql-date-last-week)
-                                 :country "Canada"})))
                   #(timer "countries"
                           (-> [["US"]
                                ["India"]
-                               ["Israel"]
                                ["Canada"]
                                ["Mexico"]
-                               ["Italy"]
-                               ["France"]
                                ["United Kingdom"]
-                               ["Brazil"]
                                ["Japan"]
-                               ["China"]
-                               ["Korea, South"]
-                               ["New Zealand"]
-                               ["South Africa"]
-                               ["Germany"]])))))))
+                               ["China"]])))))))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
