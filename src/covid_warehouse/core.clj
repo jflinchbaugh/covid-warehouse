@@ -96,6 +96,7 @@
                      [["US" "Pennsylvania" "York"]
                       ["US" "Pennsylvania" "Lancaster"]
                       ["US" "Pennsylvania" "Adams"]
+                      ["US" "Pennsylvania" "Allegheny"]
                       ["US" "Pennsylvania" "Philadelphia"]
                       ["US" "Pennsylvania" "Lebanon"]
                       ["US" "Pennsylvania" "Dauphin"]]
