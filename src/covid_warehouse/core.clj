@@ -122,6 +122,8 @@
                                ["Canada"]
                                ["Mexico"]
                                ["United Kingdom"]
+                               ["France"]
+                               ["Germany"]
                                ["Japan"]
                                ["China"]])))))))
 
