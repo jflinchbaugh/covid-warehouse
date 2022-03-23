@@ -29,26 +29,27 @@
 
 (defn load-db [ds path]
   (timer "load data"
-         (with-open [con (jdbc/get-connection ds)]
-           (timer "create staging tables"
-                  (create-stage! con))
-           (timer "load checksums"
-                  (stage-checksums! con path))
-           (timer "stage data"
-                  (stage-data!
-                   con
-                   path))
-           (timer "create dimension tables"
-                  (create-dims! con))
-           (timer "load locations"
-                  (load-dim-location! con))
-           (timer "load dates"
-                  (load-dim-date! con))
+    (with-open [con (jdbc/get-connection ds)]
+      (do
+        (timer "create staging tables"
+          (create-stage! con))
+        (timer "load checksums"
+          (stage-checksums! con path))
+        (timer "stage data"
+          (stage-data!
+            con
+            path))
+        (timer "create dimension tables"
+          (create-dims! con))
+        (timer "load locations"
+          (load-dim-location! con))
+        (timer "load dates"
+          (load-dim-date! con))
 
-           (timer "create fact table"
-                  (create-facts! con))
-           (timer "load facts"
-                  (load-fact-day! con)))))
+        (timer "create fact table"
+          (create-facts! con))
+        (timer "load facts"
+          (load-fact-day! con))))))
 
 (defn roll-history [days coll]
   (->> coll
@@ -64,21 +65,24 @@
               :case-change-history (int (mean cases))
               :recovery-change-history (int (mean recoveries))}))))))
 
-(defn query [ds dest args]
-  (timer (str "query " args)
-         (with-open [con (jdbc/get-connection ds)]
+(defn report [ds dest args]
+  (timer (str "report " args)
            (let [[country state county] args
-                 series (roll-history
-                         7
-                         (map
-                          shorten-keys
-                          (dw-series con country state county)))]
-             (spit
-              (str dest "/" (html-file-name (file-name country state county)))
-              (report series))
-             (spit
-              (str dest "/" (json-file-name (file-name country state county)))
-              (report-json series))))))
+                 series (timer (str "series " args)
+                          (roll-history
+                            7
+                            (map
+                              shorten-keys
+                              (dw-series ds country state county))))
+                 q-file-name (file-name country state county)]
+             (timer (str "writing html for " q-file-name)
+                    (spit
+                     (str dest "/" (html-file-name q-file-name))
+                     (report-html series)))
+             (timer (str "writing json for " q-file-name)
+                    (spit
+                     (str dest "/" (json-file-name q-file-name))
+                     (report-json series))))))
 
 (defn sql-date-last-week
   "provide a sql date for a week ago for cutoff dates"
@@ -93,30 +97,30 @@
           (apply concat
                  (pcalls
                   #(timer "counties"
-                     [["US" "Pennsylvania" "York"]
-                      ["US" "Pennsylvania" "Lancaster"]
-                      ["US" "Pennsylvania" "Adams"]
-                      ["US" "Pennsylvania" "Allegheny"]
-                      ["US" "Pennsylvania" "Philadelphia"]
-                      ["US" "Pennsylvania" "Lebanon"]
-                      ["US" "Pennsylvania" "Dauphin"]]
+                          [["US" "Pennsylvania" "York"]
+                           ["US" "Pennsylvania" "Lancaster"]
+                           ["US" "Pennsylvania" "Adams"]
+                           ["US" "Pennsylvania" "Allegheny"]
+                           ["US" "Pennsylvania" "Philadelphia"]
+                           ["US" "Pennsylvania" "Lebanon"]
+                           ["US" "Pennsylvania" "Dauphin"]]
                           #_(map (juxt :country :state :county)
-                               (distinct-counties-by-state-country
-                                con
-                                {:cutoff-date (sql-date-last-week)
-                                 :country "US"
-                                 :state "Pennsylvania"})))
+                                 (distinct-counties-by-state-country
+                                  con
+                                  {:cutoff-date (sql-date-last-week)
+                                   :country "US"
+                                   :state "Pennsylvania"})))
                   #(timer "us states"
-                     [["US" "Pennsylvania"]
-                      ["US" "Delaware"]
-                      ["US" "Florida"]
-                      ["US" "New York"]
-                      ["US" "California"]]
+                          [["US" "Pennsylvania"]
+                           ["US" "Delaware"]
+                           ["US" "Florida"]
+                           ["US" "New York"]
+                           ["US" "California"]]
                           #_(map (juxt :country :state)
-                               (distinct-states-by-country
-                                con
-                                {:cutoff-date (sql-date-last-week)
-                                 :country "US"})))
+                                 (distinct-states-by-country
+                                  con
+                                  {:cutoff-date (sql-date-last-week)
+                                   :country "US"})))
                   #(timer "countries"
                           (-> [["US"]
                                ["India"]
@@ -139,7 +143,7 @@
   (let [all-places (all-places ds)]
     (timer "all reports"
            (doall
-            (pmap (partial query ds dest) all-places)))
+            (pmap (partial report ds dest) all-places)))
     (timer "writing index.html"
            (spit
             (str dest "/index.html")
@@ -156,15 +160,14 @@
 Usage:
 lein run all <input-dir> <output-dir>
 lein run load <input-dir>
-lein query <output-dir> 'US' 'Pennsylvania'
+lein report <output-dir> 'US' 'Pennsylvania'
 "))
 
-(defn counts [ds]
-  (with-open [con (jdbc/get-connection ds)]
+(defn counts [con]
     {:facts (first (vals (count-facts con)))
      :dates (first (vals (count-dates con)))
      :locations (first (vals (count-locations con)))
-     :stage (first (vals (count-stage con)))}))
+     :stage (first (vals (count-stage con)))})
 
 (defn -main
   [& args]
@@ -174,8 +177,8 @@ lein query <output-dir> 'US' 'Pennsylvania'
       "load"
       (load-db ds (first args))
 
-      "query"
-      (query ds (first args) (rest args))
+      "report"
+      (report ds (first args) (rest args))
 
       "publish-all"
       (publish-all ds (first args))
@@ -196,9 +199,13 @@ lein query <output-dir> 'US' 'Pennsylvania'
          "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
          "output")
 
-  (-main "query" "output" "US" "Pennsylvania")
+  (-main "report" "output" "US" "Pennsylvania")
 
-  (-main "query" "output" "US" "Pennsylvania" "Lancaster")
+  (-main "report" "output" "US" "Pennsylvania" "Allegheny")
+
+  (report ds "output" ["US" "Pennsylvania" "Allegheny"])
+
+  (publish-all ds "output")
 
   (jdbc/execute! ds ["select distinct \"country\", \"state\" from dim_location"])
 

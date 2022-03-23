@@ -56,7 +56,7 @@
         f-keep #(<= lower-threshold % upper-threshold)]
     (filter f-keep coll)))
 
-(defn report [days]
+(defn report-html [days]
   (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
         drop-outliers (partial drop-outliers-stddev outlier-threshold)]
     (str
