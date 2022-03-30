@@ -1,16 +1,16 @@
 (ns covid-warehouse.core-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :as t]
             [covid-warehouse.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 0))))
+(t/deftest a-test
+  (t/testing "FIXME, I fail."
+    (t/is (= 0 0))))
 
-(deftest test-roll-history
-  (testing "empty"
-    (is (= [] (roll-history 2 []))))
-  (testing "single record"
-    (is (=
+(t/deftest test-roll-history
+  (t/testing "empty"
+    (t/is (= [] (roll-history 2 []))))
+  (t/testing "single record"
+    (t/is (=
          [{:case-change 1
            :death-change 2
            :recovery-change 3
@@ -20,8 +20,8 @@
          (roll-history
           2
           [{:case-change 1 :death-change 2 :recovery-change 3}]))))
-  (testing "two records"
-    (is (=
+  (t/testing "two records"
+    (t/is (=
          [{:case-change 1
            :death-change 2
            :recovery-change 3
@@ -38,8 +38,8 @@
           2
           [{:case-change 1 :death-change 2 :recovery-change 3}
            {:case-change 3 :death-change 4 :recovery-change 5}]))))
-  (testing "two records, 1 roll"
-    (is (=
+  (t/testing "two records, 1 roll"
+    (t/is (=
          [{:case-change 1
            :death-change 2
            :recovery-change 3
