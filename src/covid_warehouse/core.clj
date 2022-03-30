@@ -171,24 +171,25 @@ lein report <output-dir> 'US' 'Pennsylvania'
 (defn -main
   [& args]
 
-  (let [[action & args] args]
-    (case action
-      "load"
-      (load-db ds (first args))
-
-      "report"
-      (report ds (first args) (rest args))
-
-      "publish-all"
-      (publish-all ds (first args))
-
-      "all"
-      (do
+  (with-open [_ (jdbc/get-connection ds)]
+    (let [[action & args] args]
+      (case action
+        "load"
         (load-db ds (first args))
-        (pp/pprint (counts ds))
-        (publish-all ds (second args)))
 
-      (usage-message))))
+        "report"
+        (report ds (first args) (rest args))
+
+        "publish-all"
+        (publish-all ds (first args))
+
+        "all"
+        (do
+          (load-db ds (first args))
+          (pp/pprint (counts ds))
+          (publish-all ds (second args)))
+
+        (usage-message)))))
 
 (comment
   (-main "load"
