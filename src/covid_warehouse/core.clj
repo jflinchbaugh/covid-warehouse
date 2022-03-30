@@ -29,27 +29,26 @@
 
 (defn load-db [ds path]
   (timer "load data"
-    (with-open [con (jdbc/get-connection ds)]
-      (do
-        (timer "create staging tables"
-          (create-stage! con))
-        (timer "load checksums"
-          (stage-checksums! con path))
-        (timer "stage data"
-          (stage-data!
-            con
-            path))
-        (timer "create dimension tables"
-          (create-dims! con))
-        (timer "load locations"
-          (load-dim-location! con))
-        (timer "load dates"
-          (load-dim-date! con))
+         (with-open [con (jdbc/get-connection ds)]
+           (timer "create staging tables"
+                  (create-stage! con))
+           (timer "load checksums"
+                  (stage-checksums! con path))
+           (timer "stage data"
+                  (stage-data!
+                   con
+                   path))
+           (timer "create dimension tables"
+                  (create-dims! con))
+           (timer "load locations"
+                  (load-dim-location! con))
+           (timer "load dates"
+                  (load-dim-date! con))
 
-        (timer "create fact table"
-          (create-facts! con))
-        (timer "load facts"
-          (load-fact-day! con))))))
+           (timer "create fact table"
+                  (create-facts! con))
+           (timer "load facts"
+                  (load-fact-day! con)))))
 
 (defn roll-history [days coll]
   (->> coll
