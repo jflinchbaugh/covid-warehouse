@@ -4,6 +4,7 @@ body {
     margin: 0 auto;
     -webkit-font-smoothing: antialiased;
     width: 100%;
+    background: white;
 }
 
 .date, .death-graph, .case-graph {
