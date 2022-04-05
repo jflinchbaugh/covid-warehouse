@@ -3,16 +3,16 @@
 cd /data/in
 
 if [ -d .git ]; then
-    git pull
+    git pull --depth=1
 else
-    git clone https://github.com/CSSEGISandData/COVID-19.git .
+    git clone --depth=1 https://github.com/CSSEGISandData/COVID-19.git .
 fi
 
 cd /app
 
-java \
+time java \
     -server \
-    -XX:MaxRAMPercentage=50 -XX:MinRAMPercentage=50 \
+    -XX:MaxRAMPercentage=70 -XX:MinRAMPercentage=70 \
     -jar app.jar \
     all \
     /data/in/csse_covid_19_data/csse_covid_19_daily_reports \

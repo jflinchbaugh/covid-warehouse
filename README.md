@@ -18,8 +18,8 @@ java -server -XX:MaxRAMPercentage=80 -XX:MinRAMPercentage=80 \
 
 ## Run the Warehouse from a Container (with Podman)
 ```
-podman run --rm -it \
+podman run -m 8g --rm -it \
        -v ./output:/data/out \
-       -v ../COVID-19:/data/in \
+       -v covid-data:/data/in \
        localhost/covid-warehouse
 ```
