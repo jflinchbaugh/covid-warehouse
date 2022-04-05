@@ -10,7 +10,7 @@ fi
 
 cd /app
 
-time java \
+time -p java \
     -server \
     -XX:MaxRAMPercentage=70 -XX:MinRAMPercentage=70 \
     -jar app.jar \
