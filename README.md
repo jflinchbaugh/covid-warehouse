@@ -13,8 +13,13 @@ java -server -XX:MaxRAMPercentage=80 -XX:MinRAMPercentage=80 \
      output
 ```
 
-## Build the Warehouse into a Container (with Podman)
-`make`
+## The Warehouse in a Container (with Podman)
+
+The container clones or updates a COVID-19 data set from JHU into a volume,
+and starts up the ETL process using a large portion of the memory allocated
+to the container.
+
+To build it: `make`
 
 ## Run the Warehouse from a Container (with Podman)
 ```
@@ -23,3 +28,10 @@ podman run -m 8g --rm -it \
        -v covid-data:/data/in \
        localhost/covid-warehouse
 ```
+
+## Start as a Pod with Postgres in Podman
+
+The `covid-warehouse.yaml` describes a Pod with the warehouse and a PostgreSQL
+server deployed together.
+
+`./run_pod.sh`
