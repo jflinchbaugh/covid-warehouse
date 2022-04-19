@@ -14,7 +14,7 @@
                  [com.layerware/hugsql-core "0.5.3"]
                  [cheshire "5.10.2"]
                  [org.clj-commons/digest "1.4.100"]
-                 [org.postgresql/postgresql "42.3.3"]]
+                 [org.postgresql/postgresql "42.3.4"]]
   :main covid-warehouse.core
   :target-path "target/%s"
   :jvm-opts ["-server" "-XX:MaxRAMPercentage=75" "-XX:MinRAMPercentage=75"]
