@@ -1,6 +1,7 @@
 /target
 /classes
 /checkouts
+/input
 /output
 /data
 profiles.clj
