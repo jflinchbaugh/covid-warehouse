@@ -66,20 +66,20 @@
 
 (defn report [ds dest args]
   (timer (str "  report " args)
-           (let [[country state county] args
-                 series (timer (str "    series " args)
-                          (roll-history
-                            7
-                            (map
-                              shorten-keys
-                              (dw-series ds country state county))))
-                 q-file-name (file-name country state county)]
-             (spit
-               (str dest "/" (html-file-name q-file-name))
-               (report-html series))
-             (spit
-               (str dest "/" (json-file-name q-file-name))
-               (report-json series)))))
+         (let [[country state county] args
+               series (timer (str "    series " args)
+                             (roll-history
+                              7
+                              (map
+                               shorten-keys
+                               (dw-series ds country state county))))
+               q-file-name (file-name country state county)]
+           (spit
+            (str dest "/" (html-file-name q-file-name))
+            (report-html series))
+           (spit
+            (str dest "/" (json-file-name q-file-name))
+            (report-json series)))))
 
 (defn sql-date-last-week
   "provide a sql date for a week ago for cutoff dates"
@@ -142,11 +142,11 @@
            (doall
             (pmap (partial report ds dest) all-places)))
     (spit
-      (str dest "/index.html")
-      (index-html all-places))
+     (str dest "/index.html")
+     (index-html all-places))
     (spit
-      (str dest "/index.json")
-      (index-json all-places)))
+     (str dest "/index.json")
+     (index-json all-places)))
   (timer "copy resources"
          (copy-resources dest)))
 
@@ -159,10 +159,10 @@ lein report <output-dir> 'US' 'Pennsylvania'
 "))
 
 (defn counts [con]
-    {:facts (first (vals (count-facts con)))
-     :dates (first (vals (count-dates con)))
-     :locations (first (vals (count-locations con)))
-     :stage (first (vals (count-stage con)))})
+  {:facts (first (vals (count-facts con)))
+   :dates (first (vals (count-dates con)))
+   :locations (first (vals (count-locations con)))
+   :stage (first (vals (count-stage con)))})
 
 (defn -main
   [& args]
