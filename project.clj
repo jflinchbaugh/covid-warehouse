@@ -6,6 +6,7 @@
   :plugins []
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [org.clojure/data.csv "1.0.1"]
+                 [com.taoensso/timbre "5.2.1"] 
                  [clojure.java-time "0.3.3"]
                  [hiccup "1.0.5"]
                  [com.github.seancorfield/next.jdbc "1.2.780"]
