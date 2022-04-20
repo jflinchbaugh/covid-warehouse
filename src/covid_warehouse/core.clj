@@ -30,24 +30,24 @@
 (defn load-db [ds path]
   (timer "load data"
          (with-open [con (jdbc/get-connection ds)]
-           (timer "create staging tables"
+           (timer "  create staging tables"
                   (create-stage! con))
-           (timer "load checksums"
+           (timer "  load checksums"
                   (stage-checksums! con path))
-           (timer "stage data"
+           (timer "  stage data"
                   (stage-data!
                    con
                    path))
-           (timer "create dimension tables"
+           (timer "  create dimension tables"
                   (create-dims! con))
-           (timer "load locations"
+           (timer "  load locations"
                   (load-dim-location! con))
-           (timer "load dates"
+           (timer "  load dates"
                   (load-dim-date! con))
 
-           (timer "create fact table"
+           (timer "  create fact table"
                   (create-facts! con))
-           (timer "load facts"
+           (timer "  load facts"
                   (load-fact-day! con)))))
 
 (defn roll-history [days coll]
@@ -65,23 +65,21 @@
               :recovery-change-history (int (mean recoveries))}))))))
 
 (defn report [ds dest args]
-  (timer (str "report " args)
+  (timer (str "  report " args)
            (let [[country state county] args
-                 series (timer (str "series " args)
+                 series (timer (str "    series " args)
                           (roll-history
                             7
                             (map
                               shorten-keys
                               (dw-series ds country state county))))
                  q-file-name (file-name country state county)]
-             (timer (str "writing html for " q-file-name)
-                    (spit
-                     (str dest "/" (html-file-name q-file-name))
-                     (report-html series)))
-             (timer (str "writing json for " q-file-name)
-                    (spit
-                     (str dest "/" (json-file-name q-file-name))
-                     (report-json series))))))
+             (spit
+               (str dest "/" (html-file-name q-file-name))
+               (report-html series))
+             (spit
+               (str dest "/" (json-file-name q-file-name))
+               (report-json series)))))
 
 (defn sql-date-last-week
   "provide a sql date for a week ago for cutoff dates"
@@ -95,7 +93,7 @@
          (sort
           (apply concat
                  (pcalls
-                  #(timer "counties"
+                  #(timer "  counties"
                           [["US" "Pennsylvania" "York"]
                            ["US" "Pennsylvania" "Lancaster"]
                            ["US" "Pennsylvania" "Adams"]
@@ -109,7 +107,7 @@
                                   {:cutoff-date (sql-date-last-week)
                                    :country "US"
                                    :state "Pennsylvania"})))
-                  #(timer "us states"
+                  #(timer "  us states"
                           [["US" "Pennsylvania"]
                            ["US" "Delaware"]
                            ["US" "Florida"]
@@ -120,7 +118,7 @@
                                   con
                                   {:cutoff-date (sql-date-last-week)
                                    :country "US"})))
-                  #(timer "countries"
+                  #(timer "  countries"
                           (-> [["US"]
                                ["India"]
                                ["Canada"]
@@ -143,14 +141,12 @@
     (timer "all reports"
            (doall
             (pmap (partial report ds dest) all-places)))
-    (timer "writing index.html"
-           (spit
-            (str dest "/index.html")
-            (index-html all-places)))
-    (timer "writing index.json"
-           (spit
-            (str dest "/index.json")
-            (index-json all-places))))
+    (spit
+      (str dest "/index.html")
+      (index-html all-places))
+    (spit
+      (str dest "/index.json")
+      (index-json all-places)))
   (timer "copy resources"
          (copy-resources dest)))
 
