@@ -4,10 +4,10 @@
             [covid-warehouse.db :refer :all]
             [covid-warehouse.writer :refer :all]
             [covid-warehouse.timer :refer :all]
+            [taoensso.timbre :as l]
             [java-time :as t]
             [next.jdbc :as jdbc]
-            [clojure.java.io :as io]
-            [clojure.pprint :as pp]))
+            [clojure.java.io :as io]))
 
 (defn dw-series [ds country state county]
   (doall
@@ -183,7 +183,7 @@ lein report <output-dir> 'US' 'Pennsylvania'
           "all"
           (do
             (load-db ds (first args))
-            (pp/pprint (counts ds))
+            (l/info (counts ds))
             (publish-all ds (second args)))
 
           (usage-message))))))
