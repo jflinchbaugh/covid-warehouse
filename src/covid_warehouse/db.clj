@@ -81,71 +81,6 @@
       recs)
     {}))
 
-(def location-grouping (juxt :country :state :county))
-
-(def table-keys (juxt :country :state :county :date))
-
-(defn calc-changes
-  "given the list of days, calculate daily changes and add it to the list"
-  [lst new]
-  (let [prev (last lst)]
-    (conj
-     lst
-     (merge
-      new
-      {:cases-change
-       (-
-        (or (:cases new) 0)
-        (or (:cases prev) 0))
-       :deaths-change
-       (-
-        (or (:deaths new) 0)
-        (or (:deaths prev) 0))
-       :recoveries-change
-       (-
-        (or (:recoveries new) 0)
-        (or (:recoveries prev) 0))}))))
-
-(defn amend-changes
-  "iterate the whole list and add change fields for each day based on previous"
-  [col]
-  (->> col
-       (sort-by table-keys)
-       (group-by location-grouping)
-       (reduce-kv
-        (fn [m k v]
-          (assoc m k (reduce calc-changes [] v))) {})
-       vals
-       flatten))
-
-(defn latest-daily [col]
-  (->> col
-       (sort-by table-keys)
-       (group-by table-keys)
-       (reduce-kv
-        (fn [m k v]
-          (assoc m k (last v))) {})
-       vals
-       flatten))
-
-(defn unify-countries
-  "unify historic names of countries. if nothing matches, then pass through."
-  [m]
-  (update-in
-   m
-   [:country]
-   #(get {"UK" "United Kingdom"
-          "Mainland China" "China"
-          "Taiwan" "Taiwan*"
-          "South Korea" "Korea, South"} % %))) ; pass-through if not found
-
-(defn overlap-location? [r]
-  (= ((juxt :country :state :county) r) ["US" "New York" "New York City"]))
-
-(defn trim-all-fields
-  [m]
-  (map str/trim m))
-
 (defn insert-input-file! [ds [file-name checksum]]
   (sql/insert!
     ds
@@ -162,15 +97,11 @@
     doall
     count))
 
-(defn stage-data! [ds input-dir]
+(defn stage-data! [insert-fn input-dir]
   (->>
    input-dir
-   read-csv
-   (remove overlap-location?)
-   (pmap (comp unify-countries fix-numbers fix-date cols->maps trim-all-fields))
-   latest-daily
-   amend-changes
-   (insert-days! ds)
+   get-data-from-files
+   insert-fn
    doall
    count))
 

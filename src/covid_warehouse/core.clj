@@ -3,11 +3,15 @@
   (:require [clojure.string :as str]
             [covid-warehouse.db :refer :all]
             [covid-warehouse.writer :refer :all]
+            [covid-warehouse.reader :refer :all]
             [covid-warehouse.timer :refer :all]
+            [covid-warehouse.storage :refer :all]
             [taoensso.timbre :as l]
             [java-time :as t]
             [next.jdbc :as jdbc]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [covid-warehouse.storage :as storage]
+            [xtdb.api :as xt]))
 
 (defn dw-series [ds country state county]
   (doall
@@ -36,7 +40,7 @@
                   (stage-checksums! con path))
            (timer "  stage data"
                   (stage-data!
-                   con
+                   (partial insert-days! con)
                    path))
            (timer "  create dimension tables"
                   (create-dims! con))
@@ -168,27 +172,49 @@ lein report <output-dir> 'US' 'Pennsylvania'
   [& args]
 
   (timer "MAIN"
-    (with-open [_ (jdbc/get-connection ds)]
-      (let [[action & args] args]
-        (case action
-          "load"
-          (load-db ds (first args))
+         (with-open [_ (jdbc/get-connection ds)]
+           (let [[action & args] args]
+             (case action
+               "load"
+               (load-db ds (first args))
 
-          "report"
-          (report ds (first args) (rest args))
+               "report"
+               (report ds (first args) (rest args))
 
-          "publish-all"
-          (publish-all ds (first args))
+               "publish-all"
+               (publish-all ds (first args))
 
-          "all"
-          (do
-            (load-db ds (first args))
-            (l/info (counts ds))
-            (publish-all ds (second args)))
+               "all"
+               (do
+                 (load-db ds (first args))
+                 (l/info (counts ds))
+                 (publish-all ds (second args)))
 
-          (usage-message))))))
+               (usage-message))))))
 
 (comment
+  (timer "insert"
+         (->>
+          "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
+          get-data-from-files
+          (timer " retrieving")
+          (put-stage-doc xtdb-node)
+          count))
+
+  (timer "input"
+         (->>
+          (get-data-from-files "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+          (group-by :date)
+          (pmap (fn [[k v]] (assoc {} :date (str k) :places v)))
+          (pmap (partial put-stage-day xtdb-node))
+          doall))
+
+  (timer "query"
+         (get-stage-days xtdb-node))
+
+  (timer "query"
+         (count (get-stage-docs xtdb-node)))
+
   (-main "load"
          "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
 
@@ -205,5 +231,49 @@ lein report <output-dir> 'US' 'Pennsylvania'
   (publish-all ds "output")
 
   (jdbc/execute! ds ["select distinct \"country\", \"state\" from dim_location"])
+
+  ;; load a bunch of input files
+  (timer "load"
+    (let [path "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"]
+      (->> path
+        get-csv-files
+        (pmap
+          (fn [file-name]
+            (->>
+              file-name
+              (io/file path)
+              file->doc
+              (put-stage-day xtdb-node))))
+        count)))
+
+  ;; load one
+  (->>
+   (io/file "input" "01-01-2022.csv")
+   file->doc
+   (put-stage-day xtdb-node))
+
+  (get-stage-days xtdb-node)
+
+  (timer "facts"
+    (->> (get-stage-days xtdb-node)
+      (map (comp :places first))
+      (reduce concat)
+      (sort-by (juxt :country :state :county :date))
+      (group-by (juxt :country :state :county))
+      (pmap
+        (fn
+          [[[country state county] v]]
+          {:country country
+           :state state
+           :county county
+           :dates (->>
+                    v
+                    (map
+                      #(select-keys
+                         %
+                         [:date :cases :deaths :recoveries]))
+                    (reduce calc-changes []))}))
+      (pmap (partial put-place xtdb-node))
+      doall))
 
   nil)
