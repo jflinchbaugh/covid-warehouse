@@ -13,23 +13,17 @@
             [covid-warehouse.storage :as storage]
             [xtdb.api :as xt]))
 
-(defn dw-series [ds country state county]
+(defn dw-series [node country state county]
   (doall
    (cond
      (and (nil? state) (nil? county))
-     (dw-series-by-country
-      ds
-      {:country country})
+     (get-dates-by-country node [country])
 
      (nil? county)
-     (dw-series-by-state
-      ds
-      {:country country :state state})
+     (get-dates-by-state node [country state])
 
      :else
-     (dw-series-by-county
-      ds
-      {:country country :state state :county county}))))
+     (get-dates-by-county node [country state county]))))
 
 (defn load-db [ds path]
   (timer "load data"
@@ -55,28 +49,26 @@
                   (load-fact-day! con)))))
 
 (defn roll-history [days coll]
-  (->> coll
-       (partition-all days 1)
-       (map
-        (fn [d]
-          (let [deaths (map :death-change d)
-                cases (map :case-change d)
-                recoveries (map :recovery-change d)]
-            (merge
-             (first d)
-             {:death-change-history (int (mean deaths))
-              :case-change-history (int (mean cases))
-              :recovery-change-history (int (mean recoveries))}))))))
+  (->>
+   coll
+   (partition-all days 1)
+   (map
+    (fn [d]
+      (let [deaths (map :death-change d)
+            cases (map :case-change d)
+            recoveries (map :recovery-change d)]
+        (merge
+         (first d)
+         {:death-change-history (int (mean deaths))
+          :case-change-history (int (mean cases))
+          :recovery-change-history (int (mean recoveries))}))))))
 
-(defn report [ds dest args]
+(defn report [node dest args]
   (timer (str "  report " args)
          (let [[country state county] args
-               series (timer (str "    series " args)
-                             (roll-history
-                              7
-                              (map
-                               shorten-keys
-                               (dw-series ds country state county))))
+               series (roll-history
+                        7
+                        (dw-series node country state county))
                q-file-name (file-name country state county)]
            (spit
             (str dest "/" (html-file-name q-file-name))
@@ -90,48 +82,31 @@
   []
   (t/sql-date (t/adjust (t/local-date) t/minus (t/days 7))))
 
-(defn all-places
+(def all-places
   "list all the places we care to see"
-  [con]
-  (timer "all places"
-         (sort
-          (apply concat
-                 (pcalls
-                  #(timer "  counties"
-                          [["US" "Pennsylvania" "York"]
-                           ["US" "Pennsylvania" "Lancaster"]
-                           ["US" "Pennsylvania" "Adams"]
-                           ["US" "Pennsylvania" "Allegheny"]
-                           ["US" "Pennsylvania" "Philadelphia"]
-                           ["US" "Pennsylvania" "Lebanon"]
-                           ["US" "Pennsylvania" "Dauphin"]]
-                          #_(map (juxt :country :state :county)
-                                 (distinct-counties-by-state-country
-                                  con
-                                  {:cutoff-date (sql-date-last-week)
-                                   :country "US"
-                                   :state "Pennsylvania"})))
-                  #(timer "  us states"
-                          [["US" "Pennsylvania"]
-                           ["US" "Delaware"]
-                           ["US" "Florida"]
-                           ["US" "New York"]
-                           ["US" "California"]]
-                          #_(map (juxt :country :state)
-                                 (distinct-states-by-country
-                                  con
-                                  {:cutoff-date (sql-date-last-week)
-                                   :country "US"})))
-                  #(timer "  countries"
-                          (-> [["US"]
-                               ["India"]
-                               ["Canada"]
-                               ["Mexico"]
-                               ["United Kingdom"]
-                               ["France"]
-                               ["Germany"]
-                               ["Japan"]
-                               ["China"]])))))))
+  (sort
+    [
+     ["US" "Pennsylvania" "York"]
+     ["US" "Pennsylvania" "Lancaster"]
+     ["US" "Pennsylvania" "Adams"]
+     ["US" "Pennsylvania" "Allegheny"]
+     ["US" "Pennsylvania" "Philadelphia"]
+     ["US" "Pennsylvania" "Lebanon"]
+     ["US" "Pennsylvania" "Dauphin"]
+     ["US" "Pennsylvania"]
+     ["US" "Delaware"]
+     ["US" "Florida"]
+     ["US" "New York"]
+     ["US" "California"]
+     ["US"]
+     ["India"]
+     ["Canada"]
+     ["Mexico"]
+     ["United Kingdom"]
+     ["France"]
+     ["Germany"]
+     ["Japan"]
+     ["China"]]))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
@@ -140,19 +115,17 @@
   (copy-file "web/htaccess" (str dest "/.htaccess"))
   (copy-file "web/style.css" (str dest "/style.css")))
 
-(defn publish-all [ds dest]
-  (let [all-places (all-places ds)]
-    (timer "all reports"
-           (doall
-            (pmap (partial report ds dest) all-places)))
-    (spit
-     (str dest "/index.html")
-     (index-html all-places))
-    (spit
-     (str dest "/index.json")
-     (index-json all-places)))
-  (timer "copy resources"
-         (copy-resources dest)))
+(defn publish-all [node dest]
+  (timer "all reports"
+    (doall
+      (pmap (partial report node dest) all-places)))
+  (spit
+    (str dest "/index.html")
+    (index-html all-places))
+  (spit
+    (str dest "/index.json")
+    (index-json all-places))
+  (copy-resources dest))
 
 (defn usage-message []
   (println "
@@ -168,29 +141,70 @@ lein report <output-dir> 'US' 'Pennsylvania'
    :locations (first (vals (count-locations con)))
    :stage (first (vals (count-stage con)))})
 
+(defn stage-all-storage [node path]
+  (timer "load"
+         (->> path
+              get-csv-files
+              (pmap
+               (fn [file-name]
+                 (->>
+                  file-name
+                  (io/file path)
+                  file->doc
+                  (put-stage-day node))))
+              count)))
+
+(defn facts-storage [node]
+  (timer "facts"
+         (->> (get-stage-days node)
+              (map (comp :places first))
+              (reduce concat)
+              latest-daily
+              (sort-by table-keys)
+              (group-by location-grouping)
+              (pmap
+               (fn
+                 [[[country state county] v]]
+                 {:country country
+                  :state state
+                  :county county
+                  :dates (->>
+                          v
+                          (map
+                           #(select-keys
+                             %
+                             [:date :cases :deaths :recoveries]))
+                          (reduce calc-changes []))}))
+              (pmap (partial put-place node))
+              doall)))
+
+(defn load-data [node input-path]
+  (stage-all-storage xtdb-node input-path)
+  (facts-storage xtdb-node))
+
 (defn -main
   [& args]
 
   (timer "MAIN"
-         (with-open [_ (jdbc/get-connection ds)]
-           (let [[action & args] args]
-             (case action
-               "load"
-               (load-db ds (first args))
+    (let [[action & args] args]
+      (case action
+        "load"
+        (load-data xtdb-node (first args))
 
-               "report"
-               (report ds (first args) (rest args))
+        "report"
+        (report xtdb-node (first args) (rest args))
 
-               "publish-all"
-               (publish-all ds (first args))
+        "publish-all"
+        (publish-all xtdb-node (first args))
 
-               "all"
-               (do
-                 (load-db ds (first args))
-                 (l/info (counts ds))
-                 (publish-all ds (second args)))
+        "all"
+        (do
+          (load-data xtdb-node (first args))
+          #_(l/info (counts ds))
+          (publish-all xtdb-node (second args)))
 
-               (usage-message))))))
+        (usage-message))
+      (stop-xtdb! xtdb-node))))
 
 (comment
   (timer "insert"
@@ -226,54 +240,34 @@ lein report <output-dir> 'US' 'Pennsylvania'
 
   (-main "report" "output" "US" "Pennsylvania" "Allegheny")
 
-  (report ds "output" ["US" "Pennsylvania" "Allegheny"])
+  (report xtdb-node "output" ["US" "Pennsylvania" "Allegheny"])
+
+  (report xtdb-node "output" ["US" "Florida"])
 
   (publish-all ds "output")
 
   (jdbc/execute! ds ["select distinct \"country\", \"state\" from dim_location"])
 
-  ;; load a bunch of input files
-  (timer "load"
-    (let [path "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"]
-      (->> path
-        get-csv-files
-        (pmap
-          (fn [file-name]
-            (->>
-              file-name
-              (io/file path)
-              file->doc
-              (put-stage-day xtdb-node))))
-        count)))
+  ;; storage
 
-  ;; load one
-  (->>
-   (io/file "input" "01-01-2022.csv")
-   file->doc
-   (put-stage-day xtdb-node))
+  (stage-all-storage
+   xtdb-node
+   "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+
+  (facts-storage xtdb-node)
 
   (get-stage-days xtdb-node)
 
-  (timer "facts"
-    (->> (get-stage-days xtdb-node)
-      (map (comp :places first))
-      (reduce concat)
-      (sort-by (juxt :country :state :county :date))
-      (group-by (juxt :country :state :county))
-      (pmap
-        (fn
-          [[[country state county] v]]
-          {:country country
-           :state state
-           :county county
-           :dates (->>
-                    v
-                    (map
-                      #(select-keys
-                         %
-                         [:date :cases :deaths :recoveries]))
-                    (reduce calc-changes []))}))
-      (pmap (partial put-place xtdb-node))
-      doall))
+  (get-places xtdb-node)
+
+  (->>
+   ["US" "Pennsylvania" "York"]
+   (get-place xtdb-node)
+   :dates)
+
+  (->>
+   ["US" "Pennsylvania"]
+   (get-dates-by-state xtdb-node)
+   (roll-history 7))
 
   nil)
