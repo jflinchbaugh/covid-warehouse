@@ -52,11 +52,6 @@
             (str dest "/" (json-file-name q-file-name))
             (report-json args series)))))
 
-(defn sql-date-last-week
-  "provide a sql date for a week ago for cutoff dates"
-  []
-  (t/sql-date (t/adjust (t/local-date) t/minus (t/days 7))))
-
 (def all-places
   "list all the places we care to see"
   (sort

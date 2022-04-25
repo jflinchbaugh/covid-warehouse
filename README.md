@@ -29,10 +29,9 @@ podman run -m 8g --rm -it \
        localhost/covid-warehouse
 ```
 
-## Start as a Pod with Postgres in Podman
+## Start as a Pod in Podman
 
-The `covid-warehouse.yaml` describes a Pod with the warehouse and a PostgreSQL
-server deployed together in one pod. The `./run_pod.sh` script will rebuild
-the covid-warehouse image and launch the pod. When the warehouse process finishes,
-the script will copy the results out of the volume into the `./output/` directory
-and shutdown the whole pod.
+The `covid-warehouse.yaml` describes a Pod with the warehouse.
+The `./run_pod.sh` script will rebuild the covid-warehouse image and launch the pod. 
+When the warehouse process finishes, the script will copy the results out
+of the volume into the `./output/` directory and shutdown the whole pod.
