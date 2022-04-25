@@ -56,8 +56,8 @@
         f-keep #(<= lower-threshold % upper-threshold)]
     (filter f-keep coll)))
 
-(defn report-html [days]
-  (let [title (str/trim (str/join " " ((juxt :country :state :county) (first days))))
+(defn report-html [place days]
+  (let [title (str/trim (str/join " " place))
         drop-outliers (partial drop-outliers-stddev outlier-threshold)]
     (str
      (p/html5 {:lang "en"}
@@ -86,9 +86,8 @@
                    (map (partial day-row case-line death-line) days))]]
                [:div.prepared (java.util.Date.)]]))))
 
-(defn report-json [days]
-  (let [title (str/trim
-               (str/join " " ((juxt :country :state :county) (first days))))
+(defn report-json [place days]
+  (let [title (str/trim (str/join " " place))
         case-changes (map :case-change-history days)
         death-changes (map :death-change-history days)]
     (json/generate-string

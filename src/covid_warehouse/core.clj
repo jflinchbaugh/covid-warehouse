@@ -72,10 +72,10 @@
                q-file-name (file-name country state county)]
            (spit
             (str dest "/" (html-file-name q-file-name))
-            (report-html series))
+            (report-html args series))
            (spit
             (str dest "/" (json-file-name q-file-name))
-            (report-json series)))))
+            (report-json args series)))))
 
 (defn sql-date-last-week
   "provide a sql date for a week ago for cutoff dates"
