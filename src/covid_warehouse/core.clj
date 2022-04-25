@@ -5,10 +5,7 @@
             [covid-warehouse.reader :refer :all]
             [covid-warehouse.timer :refer :all]
             [covid-warehouse.storage :refer :all]
-            [taoensso.timbre :as l]
-            [java-time :as t]
             [clojure.java.io :as io]
-            [covid-warehouse.storage :as storage]
             [xtdb.api :as xt]))
 
 (defn dw-series [node country state county]
