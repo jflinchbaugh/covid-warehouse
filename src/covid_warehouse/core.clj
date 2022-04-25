@@ -148,33 +148,37 @@ lein report <output-dir> 'US' 'Pennsylvania'
               doall)))
 
 (defn load-data [node input-path]
-  (stage-all-storage xtdb-node input-path)
-  (facts-storage xtdb-node))
+  (stage-all-storage node input-path)
+  (facts-storage node))
 
 (defn -main
   [& args]
 
   (timer "MAIN"
     (let [[action & args] args]
-      (case action
-        "load"
-        (load-data xtdb-node (first args))
-
-        "report"
-        (report xtdb-node (first args) (rest args))
-
-        "publish-all"
-        (publish-all xtdb-node (first args))
-
-        "all"
-        (do
+      (with-open [xtdb-node (start-xtdb!)]
+        (case action
+          "load"
           (load-data xtdb-node (first args))
-          (publish-all xtdb-node (second args)))
 
-        (usage-message))
-      (stop-xtdb! xtdb-node))))
+          "report"
+          (report xtdb-node (first args) (rest args))
+
+          "publish-all"
+          (publish-all xtdb-node (first args))
+
+          "all"
+          (do
+            (load-data xtdb-node (first args))
+            (publish-all xtdb-node (second args)))
+
+          (usage-message)))
+      )))
 
 (comment
+
+  (def xtdb-node (start-xtdb!))
+
   (timer "insert"
          (->>
           "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"

@@ -17,8 +17,6 @@
 (defn stop-xtdb! [node]
   (.close node))
 
-(defonce xtdb-node (start-xtdb!))
-
 (defn add-day-id
   [rec]
   (assoc rec :xt/id (:file-name rec)))
@@ -122,6 +120,8 @@
     ))
 
 (comment
+
+  (def xtdb-node (start-xtdb!))
 
   (get-dates-by-country xtdb-node ["United Kingdom"])
 
