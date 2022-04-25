@@ -99,11 +99,12 @@
 Usage:
 lein run all <input-dir> <output-dir>
 lein run load <input-dir>
-lein report <output-dir> 'US' 'Pennsylvania'
+lein report <output-dir> <country> [state] [county]
+lein publish-all <output-dir>
 "))
 
 (defn stage-all-storage [node path]
-  (timer "load"
+  (timer "stage dates"
          (->> path
               get-csv-files
               (pmap
@@ -116,7 +117,7 @@ lein report <output-dir> 'US' 'Pennsylvania'
               count)))
 
 (defn facts-storage [node]
-  (timer "facts"
+  (timer "transform to places"
          (->> (get-stage-days node)
               (map (comp :places first))
               (reduce concat)
@@ -171,27 +172,7 @@ lein report <output-dir> 'US' 'Pennsylvania'
 
   (def xtdb-node (start-xtdb!))
 
-  (timer "insert"
-         (->>
-          "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
-          get-data-from-files
-          (timer " retrieving")
-          (put-stage-doc xtdb-node)
-          count))
-
-  (timer "input"
-         (->>
-          (get-data-from-files "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
-          (group-by :date)
-          (pmap (fn [[k v]] (assoc {} :date (str k) :places v)))
-          (pmap (partial put-stage-day xtdb-node))
-          doall))
-
-  (timer "query"
-         (get-stage-days xtdb-node))
-
-  (timer "query"
-         (count (get-stage-docs xtdb-node)))
+  (stop-xtdb! xtdb-node)
 
   (-main "load"
          "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
