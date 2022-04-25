@@ -85,12 +85,12 @@
 
 (t/deftest test-report-html
   (t/testing "report with no days"
-    (let [html (report-html [])]
+    (let [html (report-html "" [])]
       (t/is (re-find #"Date.*Deaths.*Deaths.*Cases.*Cases.*Total" html)))))
 
 (t/deftest test-report-json
   (t/testing "json report with no days"
-    (let [html (report-json [])]
+    (let [html (report-json "" [])]
       (t/is (re-find
               #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
               html)))))
