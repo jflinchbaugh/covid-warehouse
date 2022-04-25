@@ -1,14 +1,12 @@
 (ns covid-warehouse.core
   (:gen-class)
   (:require [clojure.string :as str]
-            [covid-warehouse.db :refer :all]
             [covid-warehouse.writer :refer :all]
             [covid-warehouse.reader :refer :all]
             [covid-warehouse.timer :refer :all]
             [covid-warehouse.storage :refer :all]
             [taoensso.timbre :as l]
             [java-time :as t]
-            [next.jdbc :as jdbc]
             [clojure.java.io :as io]
             [covid-warehouse.storage :as storage]
             [xtdb.api :as xt]))
@@ -24,29 +22,6 @@
 
      :else
      (get-dates-by-county node [country state county]))))
-
-(defn load-db [ds path]
-  (timer "load data"
-         (with-open [con (jdbc/get-connection ds)]
-           (timer "  create staging tables"
-                  (create-stage! con))
-           (timer "  load checksums"
-                  (stage-checksums! con path))
-           (timer "  stage data"
-                  (stage-data!
-                   (partial insert-days! con)
-                   path))
-           (timer "  create dimension tables"
-                  (create-dims! con))
-           (timer "  load locations"
-                  (load-dim-location! con))
-           (timer "  load dates"
-                  (load-dim-date! con))
-
-           (timer "  create fact table"
-                  (create-facts! con))
-           (timer "  load facts"
-                  (load-fact-day! con)))))
 
 (defn roll-history [days coll]
   (->>
@@ -135,12 +110,6 @@ lein run load <input-dir>
 lein report <output-dir> 'US' 'Pennsylvania'
 "))
 
-(defn counts [con]
-  {:facts (first (vals (count-facts con)))
-   :dates (first (vals (count-dates con)))
-   :locations (first (vals (count-locations con)))
-   :stage (first (vals (count-stage con)))})
-
 (defn stage-all-storage [node path]
   (timer "load"
          (->> path
@@ -200,7 +169,6 @@ lein report <output-dir> 'US' 'Pennsylvania'
         "all"
         (do
           (load-data xtdb-node (first args))
-          #_(l/info (counts ds))
           (publish-all xtdb-node (second args)))
 
         (usage-message))
@@ -245,8 +213,6 @@ lein report <output-dir> 'US' 'Pennsylvania'
   (report xtdb-node "output" ["US" "Florida"])
 
   (publish-all ds "output")
-
-  (jdbc/execute! ds ["select distinct \"country\", \"state\" from dim_location"])
 
   ;; storage
 
