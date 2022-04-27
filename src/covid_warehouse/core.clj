@@ -39,8 +39,8 @@
   (timer (str "  report " args)
          (let [[country state county] args
                series (roll-history
-                        7
-                        (dw-series node country state county))
+                       7
+                       (dw-series node country state county))
                q-file-name (file-name country state county)]
            (spit
             (str dest "/" (html-file-name q-file-name))
@@ -49,31 +49,28 @@
             (str dest "/" (json-file-name q-file-name))
             (report-json args series)))))
 
-(def all-places
+(defn all-places
   "list all the places we care to see"
+  [node]
   (sort
-    [
-     ["US" "Pennsylvania" "York"]
-     ["US" "Pennsylvania" "Lancaster"]
-     ["US" "Pennsylvania" "Adams"]
-     ["US" "Pennsylvania" "Allegheny"]
-     ["US" "Pennsylvania" "Philadelphia"]
-     ["US" "Pennsylvania" "Lebanon"]
-     ["US" "Pennsylvania" "Dauphin"]
-     ["US" "Pennsylvania"]
-     ["US" "Delaware"]
-     ["US" "Florida"]
-     ["US" "New York"]
-     ["US" "California"]
-     ["US"]
-     ["India"]
-     ["Canada"]
-     ["Mexico"]
-     ["United Kingdom"]
-     ["France"]
-     ["Germany"]
-     ["Japan"]
-     ["China"]]))
+    (concat
+      [["US" "Pennsylvania" "York"]
+       ["US" "Pennsylvania" "Lancaster"]
+       ["US" "Pennsylvania" "Adams"]
+       ["US" "Pennsylvania" "Allegheny"]
+       ["US" "Pennsylvania" "Philadelphia"]
+       ["US" "Pennsylvania" "Lebanon"]
+       ["US" "Pennsylvania" "Dauphin"]]
+      (->> (get-states node "US") (map (juxt :country :state)))
+      [["US"]
+       ["India"]
+       ["Canada"]
+       ["Mexico"]
+       ["United Kingdom"]
+       ["France"]
+       ["Germany"]
+       ["Japan"]
+       ["China"]])))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
@@ -84,14 +81,14 @@
 
 (defn publish-all [node dest]
   (timer "all reports"
-    (doall
-      (pmap (partial report node dest) all-places)))
+         (doall
+           (pmap (partial report node dest) (all-places node))))
   (spit
-    (str dest "/index.html")
-    (index-html all-places))
+   (str dest "/index.html")
+   (index-html (all-places node)))
   (spit
-    (str dest "/index.json")
-    (index-json all-places))
+   (str dest "/index.json")
+   (index-json (all-places node)))
   (copy-resources dest))
 
 (defn usage-message []
@@ -127,16 +124,23 @@ lein publish-all <output-dir>
               (pmap
                (fn
                  [[[country state county] v]]
-                 {:country country
-                  :state state
-                  :county county
-                  :dates (->>
-                          v
-                          (map
-                           #(select-keys
-                             %
-                             [:date :cases :deaths :recoveries]))
-                          (reduce calc-changes []))}))
+                 (let [dates (->>
+                               v
+                               (map
+                                 #(select-keys
+                                    %
+                                    [:date :cases :deaths :recoveries]))
+                               (reduce calc-changes []))
+                       date-count (count dates)]
+                   {:country country
+                    :state state
+                    :county county
+                    :dates dates
+                    :date-count date-count
+                    :date-earliest (->> dates first :date)
+                    :date-latest (->> dates last :date)
+                    :current? (> date-count 50)
+                    })))
               (pmap (partial put-place node))
               doall)))
 
@@ -148,25 +152,24 @@ lein publish-all <output-dir>
   [& args]
 
   (timer "MAIN"
-    (let [[action & args] args]
-      (with-open [xtdb-node (start-xtdb!)]
-        (case action
-          "load"
-          (load-data xtdb-node (first args))
+         (let [[action & args] args]
+           (with-open [xtdb-node (start-xtdb!)]
+             (case action
+               "load"
+               (load-data xtdb-node (first args))
 
-          "report"
-          (report xtdb-node (first args) (rest args))
+               "report"
+               (report xtdb-node (first args) (rest args))
 
-          "publish-all"
-          (publish-all xtdb-node (first args))
+               "publish-all"
+               (publish-all xtdb-node (first args))
 
-          "all"
-          (do
-            (load-data xtdb-node (first args))
-            (publish-all xtdb-node (second args)))
+               "all"
+               (do
+                 (load-data xtdb-node (first args))
+                 (publish-all xtdb-node (second args)))
 
-          (usage-message)))
-      )))
+               (usage-message))))))
 
 (comment
 
@@ -212,5 +215,26 @@ lein publish-all <output-dir>
    ["US" "Pennsylvania"]
    (get-dates-by-state xtdb-node)
    (roll-history 7))
+
+  (with-open [xtdb-node (start-xtdb!)]
+    (xt/entity-history
+     (xt/db xtdb-node)
+     {:country "US" :state "Pennsylvania" :county "Lancaster"}
+     :asc
+     {:with-corrections? true
+      :with-docs? true}))
+
+  (with-open [node (start-xtdb!)]
+    (->>
+     (xt/q
+      (xt/db node)
+      '{:find [d]
+        :where [[d :type :fact]
+                [d :country "US"]]})
+     (map #(select-keys (first %) [:country :state]))
+     distinct))
+
+  (with-open [node (start-xtdb!)]
+    (all-places node))
 
   nil)

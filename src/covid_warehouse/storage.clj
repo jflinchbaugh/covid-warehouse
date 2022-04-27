@@ -51,7 +51,8 @@
 
 (defn get-places [node]
   (xt/q (xt/db node) '{:find [p (pull p [*])]
-                       :where [[p :type :fact]]}))
+                       :where [[p :type :fact]
+                               [p :current? true]]}))
 
 (defn aggregate-date
   "given a list of date records all for the same day, sum them"
@@ -119,7 +120,24 @@
     reverse
     ))
 
+(defn get-states [node country]
+  (->>
+    (xt/q
+      (xt/db node)
+      '{:find [(pull d [:country :state])]
+        :where [[d :type :fact]
+                [d :country country]
+                [d :current? true]]
+        :in [country]}
+      country)
+    (map first)
+    distinct))
+
 (comment
+
+  (with-open [node (start-xtdb!)]
+    (get-states node "US"))
+
 
   (def xtdb-node (start-xtdb!))
 
