@@ -120,6 +120,16 @@
     reverse
     ))
 
+(defn get-countries [node]
+  (->>
+    (xt/q
+      (xt/db node)
+      '{:find [(pull d [:country])]
+        :where [[d :type :fact]
+                [d :current? true]]})
+    (map first)
+    distinct))
+
 (defn get-states [node country]
   (->>
     (xt/q
@@ -130,6 +140,20 @@
                 [d :current? true]]
         :in [country]}
       country)
+    (map first)
+    distinct))
+
+(defn get-counties [node country state]
+  (->>
+    (xt/q
+      (xt/db node)
+      '{:find [(pull d [:country :state])]
+        :where [[d :type :fact]
+                [d :country country]
+                [d :state state]
+                [d :current? true]]
+        :in [country state]}
+      country state)
     (map first)
     distinct))
 

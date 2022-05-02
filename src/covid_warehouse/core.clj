@@ -6,6 +6,7 @@
             [covid-warehouse.timer :refer :all]
             [covid-warehouse.storage :refer :all]
             [clojure.java.io :as io]
+            [taoensso.timbre :as l]
             [xtdb.api :as xt]))
 
 (defn dw-series [node country state county]
@@ -54,23 +55,13 @@
   [node]
   (sort
     (concat
-      [["US" "Pennsylvania" "York"]
-       ["US" "Pennsylvania" "Lancaster"]
-       ["US" "Pennsylvania" "Adams"]
-       ["US" "Pennsylvania" "Allegheny"]
-       ["US" "Pennsylvania" "Philadelphia"]
-       ["US" "Pennsylvania" "Lebanon"]
-       ["US" "Pennsylvania" "Dauphin"]]
-      (->> (get-states node "US") (map (juxt :country :state)))
-      [["US"]
-       ["India"]
-       ["Canada"]
-       ["Mexico"]
-       ["United Kingdom"]
-       ["France"]
-       ["Germany"]
-       ["Japan"]
-       ["China"]])))
+      (timer "get PA counties"
+        (map (juxt :country :state :county) (get-counties node "US" "Pennsylvania")))
+      (timer "get US states"
+        (map (juxt :country :state) (get-states node "US")))
+      (timer "get countries"
+        (map (juxt :country) (get-countries node)))
+      )))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
@@ -142,11 +133,11 @@ lein publish-all <output-dir>
                     :current? (> date-count 50)
                     })))
               (pmap (partial put-place node))
-              doall)))
+              count)))
 
 (defn load-data [node input-path]
-  (stage-all-storage node input-path)
-  (facts-storage node))
+  (l/info (str "days: " (stage-all-storage node input-path)))
+  (l/info (str "places: " (facts-storage node))))
 
 (defn -main
   [& args]
@@ -216,25 +207,55 @@ lein publish-all <output-dir>
    (get-dates-by-state xtdb-node)
    (roll-history 7))
 
-  (with-open [xtdb-node (start-xtdb!)]
     (xt/entity-history
      (xt/db xtdb-node)
      {:country "US" :state "Pennsylvania" :county "Lancaster"}
      :asc
      {:with-corrections? true
-      :with-docs? true}))
+      :with-docs? true})
 
-  (with-open [node (start-xtdb!)]
     (->>
      (xt/q
-      (xt/db node)
+      (xt/db xtdb-node)
       '{:find [d]
         :where [[d :type :fact]
                 [d :country "US"]]})
      (map #(select-keys (first %) [:country :state]))
-     distinct))
+     distinct)
 
-  (with-open [node (start-xtdb!)]
-    (all-places node))
+    (->>
+      (xt/q
+        (xt/db xtdb-node)
+        '{:find [country state county dates]
+          :where [[d :type :fact]
+                  [d :country country]
+                  [d :state state]
+                  [d :county county]
+                  [d :dates dates]
+                  [(== country "US")]
+                  [(== state "Pennsylvania")]
+                  [(== county "Lancaster")]
+                  ]
+          :timeout 6000}))
+
+    (->>
+      (xt/q
+        (xt/db xtdb-node)
+        '{:find [(pull d [:country :state :county {:dates [*]}])]
+          :where [[d :type :fact]
+                  [d :country "US"]
+                  [d :state "Pennsylvania"]
+                  [d :county "Lancaster"]
+                  ]
+          :timeout 6000}))
+
+    (all-places xtdb-node)
+
+    (defmethod xtdb.query/aggregate 'sort-reverse [_]
+      (fn
+        ([] [])
+        ([acc] (vec (reverse (sort acc))))
+        ([acc x] (conj acc x))))
+
 
   nil)
