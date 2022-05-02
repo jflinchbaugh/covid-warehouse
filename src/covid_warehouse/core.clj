@@ -71,15 +71,16 @@
   (copy-file "web/style.css" (str dest "/style.css")))
 
 (defn publish-all [node dest]
-  (timer "all reports"
-         (doall
-           (pmap (partial report node dest) (all-places node))))
-  (spit
-   (str dest "/index.html")
-   (index-html (all-places node)))
-  (spit
-   (str dest "/index.json")
-   (index-json (all-places node)))
+  (let [places (all-places node)]
+    (timer "all reports"
+      (doall
+        (pmap (partial report node dest) places)))
+    (spit
+      (str dest "/index.html")
+      (index-html places))
+    (spit
+      (str dest "/index.json")
+      (index-json places)))
   (copy-resources dest))
 
 (defn usage-message []
