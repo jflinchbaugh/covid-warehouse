@@ -147,7 +147,7 @@
   (->>
     (xt/q
       (xt/db node)
-      '{:find [(pull d [:country :state])]
+      '{:find [(pull d [:country :state :county])]
         :where [[d :type :fact]
                 [d :country country]
                 [d :state state]
