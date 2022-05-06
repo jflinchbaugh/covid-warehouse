@@ -87,8 +87,9 @@
 Usage:
 lein run all <input-dir> <output-dir>
 lein run load <input-dir>
-lein report <output-dir> <country> [state] [county]
-lein publish-all <output-dir>
+lein run report <output-dir> <country> [state] [county]
+lein run publish-all <output-dir>
+lein run history <country> <state> <county>
 "))
 
 (defn stage-all-storage [node path]
@@ -159,6 +160,18 @@ lein publish-all <output-dir>
                  (load-data xtdb-node (first args))
                  (publish-all xtdb-node (second args)))
 
+               "history"
+               (doseq
+                [h (xt/entity-history
+                    (xt/db xtdb-node)
+                    {:country (first args)
+                     :state (second args)
+                     :county (nth args 2)}
+                    :asc
+                    {:with-corrections? true
+                     :with-docs? false})]
+                 (l/info h))
+
                (usage-message))))))
 
 (comment
@@ -177,6 +190,8 @@ lein publish-all <output-dir>
   (-main "report" "output" "US" "Pennsylvania")
 
   (-main "report" "output" "US" "Pennsylvania" "Allegheny")
+
+  (-main "history" "US" "Pennsylvania" "Lancaster")
 
   (report xtdb-node "output" ["US" "Pennsylvania" "Allegheny"])
 
