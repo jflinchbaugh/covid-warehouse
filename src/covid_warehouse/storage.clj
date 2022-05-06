@@ -39,7 +39,8 @@
 
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
-                       :where [[d :type :stage]]}))
+                       :where [[d :type :stage]]
+                       :timeout 20000}))
 
 (defn put-place [node place]
   (let [tx (xt/submit-tx
