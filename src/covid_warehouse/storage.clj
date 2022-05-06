@@ -14,6 +14,10 @@
       :xtdb/document-store (kv-store "data/doc-store")
       :xtdb/index-store (kv-store "data/index-store")})))
 
+(defn await-txs [node txs]
+  (xt/await-tx node (last txs))
+  txs)
+
 (defn stop-xtdb! [node]
   (.close node))
 
@@ -30,12 +34,10 @@
   (assoc rec :type type))
 
 (defn put-stage-day [node record]
-  (let [tx (xt/submit-tx
-            node
-            [[::xt/put
-              (->> record (tag :stage) add-day-id)]])]
-    (xt/await-tx node tx)
-    tx))
+  (xt/submit-tx
+   node
+   [[::xt/put
+     (->> record (tag :stage) add-day-id)]]))
 
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
@@ -43,12 +45,10 @@
                        :timeout 20000}))
 
 (defn put-place [node place]
-  (let [tx (xt/submit-tx
-            node
-            [[::xt/put
-              (->> place (tag :fact) add-place-id)]])]
-    (xt/await-tx node tx)
-    tx))
+   (xt/submit-tx
+    node
+    [[::xt/put
+      (->> place (tag :fact) add-place-id)]]))
 
 (defn get-places [node]
   (xt/q (xt/db node) '{:find [p (pull p [*])]
@@ -83,8 +83,7 @@
    (sort-by :date)
    (partition-by :date)
    (map aggregate-date)
-   reverse
-   ))
+   reverse))
 
 (defn get-dates-by-state [node [country state]]
   (->>
@@ -101,68 +100,65 @@
    (sort-by :date)
    (partition-by :date)
    (map aggregate-date)
-   reverse
-   ))
+   reverse))
 
 (defn get-dates-by-country [node [country]]
   (->>
-    (xt/q
-      (xt/db node)
-      '{:find [(pull p [:dates])]
-        :where [[p :type :fact]
-                [p :country country]]
-        :in [country]}
-      country)
-    (map (comp :dates first))
-    (reduce concat)
-    (sort-by :date)
-    (partition-by :date)
-    (map aggregate-date)
-    reverse
-    ))
+   (xt/q
+    (xt/db node)
+    '{:find [(pull p [:dates])]
+      :where [[p :type :fact]
+              [p :country country]]
+      :in [country]}
+    country)
+   (map (comp :dates first))
+   (reduce concat)
+   (sort-by :date)
+   (partition-by :date)
+   (map aggregate-date)
+   reverse))
 
 (defn get-countries [node]
   (->>
-    (xt/q
-      (xt/db node)
-      '{:find [(pull d [:country])]
-        :where [[d :type :fact]
-                [d :current? true]]})
-    (map first)
-    distinct))
+   (xt/q
+    (xt/db node)
+    '{:find [(pull d [:country])]
+      :where [[d :type :fact]
+              [d :current? true]]})
+   (map first)
+   distinct))
 
 (defn get-states [node country]
   (->>
-    (xt/q
-      (xt/db node)
-      '{:find [(pull d [:country :state])]
-        :where [[d :type :fact]
-                [d :country country]
-                [d :current? true]]
-        :in [country]}
-      country)
-    (map first)
-    distinct))
+   (xt/q
+    (xt/db node)
+    '{:find [(pull d [:country :state])]
+      :where [[d :type :fact]
+              [d :country country]
+              [d :current? true]]
+      :in [country]}
+    country)
+   (map first)
+   distinct))
 
 (defn get-counties [node country state]
   (->>
-    (xt/q
-      (xt/db node)
-      '{:find [(pull d [:country :state :county])]
-        :where [[d :type :fact]
-                [d :country country]
-                [d :state state]
-                [d :current? true]]
-        :in [country state]}
-      country state)
-    (map first)
-    distinct))
+   (xt/q
+    (xt/db node)
+    '{:find [(pull d [:country :state :county])]
+      :where [[d :type :fact]
+              [d :country country]
+              [d :state state]
+              [d :current? true]]
+      :in [country state]}
+    country state)
+   (map first)
+   distinct))
 
 (comment
 
   (with-open [node (start-xtdb!)]
     (get-states node "US"))
-
 
   (def xtdb-node (start-xtdb!))
 
@@ -177,7 +173,6 @@
   (xt/submit-tx xtdb-node [[::xt/put {:xt/id "zig" :name "zig"}]])
 
   (xt/submit-tx xtdb-node [[::xt/evict "zig"]])
-
 
   (xt/q
    (xt/db xtdb-node)
