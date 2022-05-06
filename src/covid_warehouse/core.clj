@@ -144,6 +144,27 @@ lein run history-file <file-name>
   (l/info (str "days: " (stage-all-storage node input-path)))
   (l/info (str "places: " (facts-storage node))))
 
+(defn history-place [xtdb-node [country state county]]
+  (doseq [h (xt/entity-history
+             (xt/db xtdb-node)
+             {:country country
+              :state state
+              :county county}
+             :asc
+             {:with-corrections? true
+              :with-docs? false})]
+    (l/info h)))
+
+(defn history-file [xtdb-node file-name]
+  (doseq
+   [h (xt/entity-history
+       (xt/db xtdb-node)
+       file-name
+       :asc
+       {:with-corrections? true
+        :with-docs? false})]
+    (l/info h)))
+
 (defn -main
   [& args]
 
@@ -166,26 +187,10 @@ lein run history-file <file-name>
                  (publish-all xtdb-node (second args)))
 
                "history-place"
-               (doseq
-                [h (xt/entity-history
-                    (xt/db xtdb-node)
-                    {:country (first args)
-                     :state (second args)
-                     :county (nth args 2)}
-                    :asc
-                    {:with-corrections? true
-                     :with-docs? false})]
-                 (l/info h))
+               (history-place xtdb-node args)
 
                "history-file"
-               (doseq
-                [h (xt/entity-history
-                    (xt/db xtdb-node)
-                    (first args)
-                    :asc
-                    {:with-corrections? true
-                     :with-docs? false})]
-                 (l/info h))
+               (history-file xtdb-node (first args))
 
                (usage-message))))))
 
