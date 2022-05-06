@@ -54,14 +54,13 @@
   "list all the places we care to see"
   [node]
   (sort
-    (concat
-      (timer "get PA counties"
-        (map (juxt :country :state :county) (get-counties node "US" "Pennsylvania")))
-      (timer "get US states"
-        (map (juxt :country :state) (get-states node "US")))
-      (timer "get countries"
-        (map (juxt :country) (get-countries node)))
-      )))
+   (concat
+    (timer "get PA counties"
+           (map (juxt :country :state :county) (get-counties node "US" "Pennsylvania")))
+    (timer "get US states"
+           (map (juxt :country :state) (get-states node "US")))
+    (timer "get countries"
+           (map (juxt :country) (get-countries node))))))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
@@ -73,14 +72,14 @@
 (defn publish-all [node dest]
   (let [places (all-places node)]
     (timer "all reports"
-      (doall
-        (pmap (partial report node dest) places)))
+           (doall
+            (pmap (partial report node dest) places)))
     (spit
-      (str dest "/index.html")
-      (index-html places))
+     (str dest "/index.html")
+     (index-html places))
     (spit
-      (str dest "/index.json")
-      (index-json places)))
+     (str dest "/index.json")
+     (index-json places)))
   (copy-resources dest))
 
 (defn usage-message []
@@ -117,12 +116,12 @@ lein publish-all <output-dir>
                (fn
                  [[[country state county] v]]
                  (let [dates (->>
-                               v
-                               (map
-                                 #(select-keys
-                                    %
-                                    [:date :cases :deaths :recoveries]))
-                               (reduce calc-changes []))
+                              v
+                              (map
+                               #(select-keys
+                                 %
+                                 [:date :cases :deaths :recoveries]))
+                              (reduce calc-changes []))
                        date-count (count dates)]
                    {:country country
                     :state state
@@ -131,8 +130,7 @@ lein publish-all <output-dir>
                     :date-count date-count
                     :date-earliest (->> dates first :date)
                     :date-latest (->> dates last :date)
-                    :current? (> date-count 50)
-                    })))
+                    :current? (> date-count 50)})))
               (pmap (partial put-place node))
               count)))
 
@@ -208,55 +206,56 @@ lein publish-all <output-dir>
    (get-dates-by-state xtdb-node)
    (roll-history 7))
 
+  (with-open [xtdb-node (start-xtdb!)]
+    (xt/attribute-stats xtdb-node))
+
+  (with-open [xtdb-node (start-xtdb!)]
     (xt/entity-history
      (xt/db xtdb-node)
      {:country "US" :state "Pennsylvania" :county "Lancaster"}
      :asc
-     {:with-corrections? true
-      :with-docs? true})
+     {:with-corrections? false
+      :with-docs? true}))
 
-    (->>
-     (xt/q
-      (xt/db xtdb-node)
-      '{:find [d]
-        :where [[d :type :fact]
-                [d :country "US"]]})
-     (map #(select-keys (first %) [:country :state]))
-     distinct)
+  (->>
+   (xt/q
+    (xt/db xtdb-node)
+    '{:find [d]
+      :where [[d :type :fact]
+              [d :country "US"]]})
+   (map #(select-keys (first %) [:country :state]))
+   distinct)
 
-    (->>
-      (xt/q
-        (xt/db xtdb-node)
-        '{:find [country state county dates]
-          :where [[d :type :fact]
-                  [d :country country]
-                  [d :state state]
-                  [d :county county]
-                  [d :dates dates]
-                  [(== country "US")]
-                  [(== state "Pennsylvania")]
-                  [(== county "Lancaster")]
-                  ]
-          :timeout 6000}))
+  (->>
+   (xt/q
+    (xt/db xtdb-node)
+    '{:find [country state county dates]
+      :where [[d :type :fact]
+              [d :country country]
+              [d :state state]
+              [d :county county]
+              [d :dates dates]
+              [(== country "US")]
+              [(== state "Pennsylvania")]
+              [(== county "Lancaster")]]
+      :timeout 6000}))
 
-    (->>
-      (xt/q
-        (xt/db xtdb-node)
-        '{:find [(pull d [:country :state :county {:dates [*]}])]
-          :where [[d :type :fact]
-                  [d :country "US"]
-                  [d :state "Pennsylvania"]
-                  [d :county "Lancaster"]
-                  ]
-          :timeout 6000}))
+  (->>
+   (xt/q
+    (xt/db xtdb-node)
+    '{:find [(pull d [:country :state :county {:dates [*]}])]
+      :where [[d :type :fact]
+              [d :country "US"]
+              [d :state "Pennsylvania"]
+              [d :county "Lancaster"]]
+      :timeout 6000}))
 
-    (all-places xtdb-node)
+  (all-places xtdb-node)
 
-    (defmethod xtdb.query/aggregate 'sort-reverse [_]
-      (fn
-        ([] [])
-        ([acc] (vec (reverse (sort acc))))
-        ([acc x] (conj acc x))))
-
+  (defmethod xtdb.query/aggregate 'sort-reverse [_]
+    (fn
+      ([] [])
+      ([acc] (vec (reverse (sort acc))))
+      ([acc x] (conj acc x))))
 
   nil)
