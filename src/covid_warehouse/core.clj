@@ -89,7 +89,8 @@ lein run all <input-dir> <output-dir>
 lein run load <input-dir>
 lein run report <output-dir> <country> [state] [county]
 lein run publish-all <output-dir>
-lein run history <country> <state> <county>
+lein run history-place <country> <state> <county>
+lein run history-file <file-name>
 "))
 
 (defn stage-all-storage [node path]
@@ -160,7 +161,7 @@ lein run history <country> <state> <county>
                  (load-data xtdb-node (first args))
                  (publish-all xtdb-node (second args)))
 
-               "history"
+               "history-place"
                (doseq
                 [h (xt/entity-history
                     (xt/db xtdb-node)
@@ -170,6 +171,16 @@ lein run history <country> <state> <county>
                     :asc
                     {:with-corrections? true
                      :with-docs? false})]
+                 (l/info h))
+
+               "history-file"
+               (doseq
+                   [h (xt/entity-history
+                        (xt/db xtdb-node)
+                        (first args)
+                        :asc
+                        {:with-corrections? true
+                         :with-docs? false})]
                  (l/info h))
 
                (usage-message))))))
@@ -191,7 +202,9 @@ lein run history <country> <state> <county>
 
   (-main "report" "output" "US" "Pennsylvania" "Allegheny")
 
-  (-main "history" "US" "Pennsylvania" "Lancaster")
+  (-main "history-place" "US" "Pennsylvania" "Lancaster")
+
+  (-main "history-file" "input/01-01-2021.csv")
 
   (report xtdb-node "output" ["US" "Pennsylvania" "Allegheny"])
 
@@ -240,6 +253,12 @@ lein run history <country> <state> <county>
               [d :country "US"]]})
    (map #(select-keys (first %) [:country :state]))
    distinct)
+
+  (with-open [xtdb-node (start-xtdb!)]
+    (xt/q
+      (xt/db xtdb-node)
+      '{:find [d]
+        :where [[d :type :stage]]}))
 
   (->>
    (xt/q
