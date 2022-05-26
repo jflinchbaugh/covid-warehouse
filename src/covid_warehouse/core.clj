@@ -200,12 +200,9 @@ lein run history-file <file-name>
 
   (stop-xtdb! xtdb-node)
 
-  (-main "load"
-         "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+  (-main "load" "input")
 
-  (-main "all"
-         "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports"
-         "output")
+  (-main "all" "input" "output")
 
   (-main "report" "output" "US" "Pennsylvania")
 
