@@ -220,9 +220,8 @@ lein run history-file <file-name>
 
   ;; storage
 
-  (stage-all-storage
-   xtdb-node
-   "/home/john/workspace/COVID-19/csse_covid_19_data/csse_covid_19_daily_reports")
+  (with-open [xtdb-node (start-xtdb!)]
+    (stage-all-storage xtdb-node "input"))
 
   (with-open [xtdb-node (start-xtdb!)]
     (facts-storage xtdb-node))
