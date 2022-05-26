@@ -109,7 +109,7 @@ lein run history-file <file-name>
           (count))))
 
 (defn facts-storage [node]
-  (timer "transform to places"
+  (timer "transform to facts"
          (->>
           (get-stage-days node)
           (map (comp :places first))
