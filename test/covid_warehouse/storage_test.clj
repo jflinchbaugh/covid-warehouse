@@ -10,13 +10,14 @@
 
 (t/deftest test-add-place-id
   (t/testing "empty gets empty map as id"
-    (t/is (= {:xt/id {}} (add-place-id {}))))
+    (t/is (= {:xt/id {}} (add-place-id :xt/id {} {}))))
   (t/testing "file-name is used as id"
     (t/is (= {:xt/id {:country "U" :state "S" :county "C"}
-              :country "U"
-              :state "S"
-              :county "C"}
-            (add-place-id {:country "U" :state "S" :county "C"})))))
+              :field "value"}
+            (add-place-id
+              :xt/id
+              {:country "U" :state "S" :county "C"}
+              {:field "value"})))))
 
 (t/deftest test-tag
   (t/testing "nil"

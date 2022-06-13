@@ -26,8 +26,20 @@
   (assoc rec :xt/id (:file-name rec)))
 
 (defn add-place-id
-  [rec]
-  (assoc rec :xt/id (select-keys rec [:country :state :county])))
+  [id-name place rec]
+  (assoc
+   rec
+   id-name
+   (select-keys place [:country :state :county])))
+
+(defn add-date-id
+  [place rec]
+  (assoc
+   rec
+   :xt/id
+   (assoc
+    (select-keys place [:country :state :county])
+    :date (:date rec))))
 
 (defn tag
   [type rec]
@@ -41,19 +53,34 @@
 
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
-                       :where [[d :type :stage]]
-                       :timeout 20000}))
+                       :where [[d :type :stage]]}))
 
-(defn put-place [node place]
-   (xt/submit-tx
-    node
+(defn make-date [d]
+  (select-keys d [:date :deaths-change :cases-change :recoveries-change]))
+
+(defn make-txs [place]
+  (concat
     [[::xt/put
-      (->> place (tag :fact) add-place-id)]]))
+      (->> (dissoc place :dates) (tag :place) (add-place-id :xt/id place))]]
+    (for [date (:dates place)]
+      [::xt/put (->>
+                  date
+                  make-date
+                  (tag :date)
+                  (add-date-id place)
+                  (add-place-id :place/id place))])
+    ))
+
+(defn put-place [node txs]
+  (xt/submit-tx node txs))
 
 (defn get-places [node]
-  (xt/q (xt/db node) '{:find [p (pull p [*])]
-                       :where [[p :type :fact]
-                               [p :current? true]]}))
+  (xt/q (xt/db node) '{:find [(pull p [*])]
+                       :where [[p :type :place]]}))
+
+(defn get-dates [node]
+  (xt/q (xt/db node) '{:find [(pull d [*])]
+                       :where [[d :type :date]]}))
 
 (defn aggregate-date
   "given a list of date records all for the same day, sum them"
@@ -71,15 +98,18 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull p [:dates])]
-      :where [[p :type :fact]
+    '{:find [(pull d [*])]
+      :where [
+              [d :type :date]
+              [d :place/id p]
+              [p :type :place]
               [p :country country]
               [p :state state]
               [p :county county]]
-      :in [country state county]}
+      :in [country state county]
+      :timeout 240000}
     country state county)
-   (map (comp :dates first))
-   (reduce concat)
+   (map first)
    (sort-by :date)
    (partition-by :date)
    (map aggregate-date)
@@ -89,14 +119,16 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull p [:dates])]
-      :where [[p :type :fact]
+    '{:find [(pull d [*])]
+      :where [[d :type :date]
+              [d :place/id p]
+              [p :type :place]
               [p :country country]
               [p :state state]]
-      :in [country state]}
+      :in [country state]
+      :timeout 240000}
     country state)
-   (map (comp :dates first))
-   (reduce concat)
+   (map first)
    (sort-by :date)
    (partition-by :date)
    (map aggregate-date)
@@ -106,13 +138,15 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull p [:dates])]
-      :where [[p :type :fact]
+    '{:find [(pull d [*])]
+      :where [[d :type :date]
+              [d :place/id p]
+              [p :type :place]
               [p :country country]]
-      :in [country]}
+      :in [country]
+      :timeout 240000}
     country)
-   (map (comp :dates first))
-   (reduce concat)
+   (map first)
    (sort-by :date)
    (partition-by :date)
    (map aggregate-date)
@@ -123,7 +157,7 @@
    (xt/q
     (xt/db node)
     '{:find [(pull d [:country])]
-      :where [[d :type :fact]
+      :where [[d :type :place]
               [d :current? true]]})
    (map first)
    distinct))
@@ -133,7 +167,7 @@
    (xt/q
     (xt/db node)
     '{:find [(pull d [:country :state])]
-      :where [[d :type :fact]
+      :where [[d :type :place]
               [d :country country]
               [d :current? true]]
       :in [country]}
@@ -146,7 +180,7 @@
    (xt/q
     (xt/db node)
     '{:find [(pull d [:country :state :county])]
-      :where [[d :type :fact]
+      :where [[d :type :place]
               [d :country country]
               [d :state state]
               [d :current? true]]
@@ -157,10 +191,9 @@
 
 (comment
 
-  (with-open [node (start-xtdb!)]
-    (get-states node "US"))
-
   (def xtdb-node (start-xtdb!))
+
+  (get-states xtdb-node "US")
 
   (get-dates-by-country xtdb-node ["United Kingdom"])
 

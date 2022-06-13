@@ -98,6 +98,7 @@ lein run history-file <file-name>
          (->>
           path
           get-csv-files
+          (filter (partial re-matches #"02-.*-2022.*"))
           (pmap
            (fn [file-name]
              (->>
@@ -106,39 +107,43 @@ lein run history-file <file-name>
               file->doc
               (put-stage-day node))))
           (await-txs node)
-          (count))))
+          doall
+          count)))
+
+(defn make-place
+  [[[country state county] v]]
+  (let [dates (->>
+               v
+               (map
+                #(select-keys
+                  %
+                  [:date :cases :deaths :recoveries]))
+               (reduce calc-changes []))
+        date-count (count dates)]
+    {:country country
+     :state state
+     :county county
+     :dates dates
+     :date-count date-count
+     :date-earliest (->> dates first :date)
+     :date-latest (->> dates last :date)
+     :current? (> date-count 10)}))
 
 (defn facts-storage [node]
   (timer "transform to facts"
          (->>
-          (get-stage-days node)
+          node
+          get-stage-days
           (map (comp :places first))
           (reduce concat)
           latest-daily
           (sort-by table-keys)
           (group-by location-grouping)
-          (pmap
-           (fn
-             [[[country state county] v]]
-             (let [dates (->>
-                          v
-                          (map
-                           #(select-keys
-                             %
-                             [:date :cases :deaths :recoveries]))
-                          (reduce calc-changes []))
-                   date-count (count dates)]
-               {:country country
-                :state state
-                :county county
-                :dates dates
-                :date-count date-count
-                :date-earliest (->> dates first :date)
-                :date-latest (->> dates last :date)
-                :current? (> date-count 50)})))
+          (pmap make-place)
+          (pmap make-txs)
           (pmap (partial put-place node))
           (await-txs node)
-          (count))))
+          count)))
 
 (defn load-data [node input-path]
   (l/info (str "days: " (stage-all-storage node input-path)))
@@ -220,16 +225,30 @@ lein run history-file <file-name>
 
   ;; storage
 
-  (with-open [xtdb-node (start-xtdb!)]
-    (stage-all-storage xtdb-node "input"))
+  (stage-all-storage xtdb-node "input")
 
-  (with-open [xtdb-node (start-xtdb!)]
-    (facts-storage xtdb-node))
+  (facts-storage xtdb-node)
 
-  (with-open [xtdb-node (start-xtdb!)]
-    (get-stage-days xtdb-node))
+  (get-stage-days xtdb-node)
 
   (get-places xtdb-node)
+
+  (get-dates xtdb-node)
+
+  (xt/q (xt/db xtdb-node) '{:find [d c]
+                            :where [
+                                    [d :cases-change c]
+                                    [d :type :date]
+                                    [p :type :place]
+                                    [d :place/id p]
+                                    [p :country "US"]
+                                    [p :state "Pennsylvania"]
+                                    [p :county "Lancaster"]
+                                    ]})
+
+  (timer "get" (get-dates-by-county xtdb-node ["US" "Pennsylvania" "Lancaster"]))
+
+  (timer "get" (get-dates-by-state xtdb-node ["US" "Pennsylvania"]))
 
   (->>
    ["US" "Pennsylvania" "York"]
@@ -266,6 +285,12 @@ lein run history-file <file-name>
      (xt/db xtdb-node)
      '{:find [d]
        :where [[d :type :stage]]}))
+
+  (with-open [xtdb-node (start-xtdb!)]
+    (xt/q
+     (xt/db xtdb-node)
+     '{:find [d]
+       :where [[d :type :fact]]}))
 
   (->>
    (xt/q
