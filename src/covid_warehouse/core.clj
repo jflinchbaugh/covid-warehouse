@@ -7,7 +7,8 @@
             [covid-warehouse.storage :refer :all]
             [clojure.java.io :as io]
             [taoensso.timbre :as l]
-            [xtdb.api :as xt]))
+            [xtdb.api :as xt]
+            [java-time :as t]))
 
 (defn dw-series [node country state county]
   (doall
@@ -56,11 +57,17 @@
   (sort
    (concat
     (timer "get PA counties"
-           (map (juxt :country :state :county) (get-counties node "US" "Pennsylvania")))
+      (map
+        (juxt :place/country :place/state :place/county)
+        (get-counties node "US" "Pennsylvania")))
     (timer "get US states"
-           (map (juxt :country :state) (get-states node "US")))
+      (map
+        (juxt :place/country :place/state)
+        (get-states node "US")))
     (timer "get countries"
-           (map (juxt :country) (get-countries node))))))
+      (map
+        (juxt :place/country)
+        (get-countries node))))))
 
 (defn copy-file [src dest]
   (io/copy (io/input-stream (io/resource src)) (io/file dest)))
@@ -98,7 +105,6 @@ lein run history-file <file-name>
          (->>
           path
           get-csv-files
-          (filter (partial re-matches #"02-.*-2022.*"))
           (pmap
            (fn [file-name]
              (->>
@@ -149,18 +155,21 @@ lein run history-file <file-name>
   (l/info (str "days: " (stage-all-storage node input-path)))
   (l/info (str "places: " (facts-storage node))))
 
-(defn history-place [xtdb-node [country state county]]
+(defn history-place [xtdb-node [country state county date]]
+  (l/info (str "history: " country " " state " " county " " date))
   (doseq [h (xt/entity-history
              (xt/db xtdb-node)
              {:country country
               :state state
-              :county county}
+              :county county
+              :date date}
              :asc
              {:with-corrections? true
               :with-docs? false})]
     (l/info h)))
 
 (defn history-file [xtdb-node file-name]
+  (l/info (str "history: " file-name))
   (doseq
    [h (xt/entity-history
        (xt/db xtdb-node)
@@ -235,6 +244,16 @@ lein run history-file <file-name>
 
   (get-dates xtdb-node)
 
+  (xt/attribute-stats xtdb-node)
+
+  (xt/q (xt/db xtdb-node) '{:find [(count f)]
+                            :where [[f :type :date]]
+                            :timeout 240000})
+
+  (history-file xtdb-node "input/02-22-2022.csv")
+
+  (history-place xtdb-node ["US" "Pennsylvania" "York" (t/local-date "2022-01-01")])
+
   (xt/q (xt/db xtdb-node) '{:find [d c]
                             :where [
                                     [d :cases-change c]
@@ -249,6 +268,8 @@ lein run history-file <file-name>
   (timer "get" (get-dates-by-county xtdb-node ["US" "Pennsylvania" "Lancaster"]))
 
   (timer "get" (get-dates-by-state xtdb-node ["US" "Pennsylvania"]))
+
+  (timer "get" (get-dates-by-country xtdb-node ["US"]))
 
   (->>
    ["US" "Pennsylvania" "York"]
@@ -315,6 +336,10 @@ lein run history-file <file-name>
               [d :state "Pennsylvania"]
               [d :county "Lancaster"]]
       :timeout 6000}))
+
+  (xt/attribute-stats xtdb-node)
+
+  (xt/q (xt/db xtdb-node) '{:find [(count f)]})
 
   (all-places xtdb-node)
 

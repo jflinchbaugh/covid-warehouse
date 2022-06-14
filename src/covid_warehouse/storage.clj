@@ -53,34 +53,38 @@
 
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
-                       :where [[d :type :stage]]}))
+                       :where [[d :type :stage]]
+                       :timeout 240000}))
 
-(defn make-date [d]
-  (select-keys d [:date :deaths-change :cases-change :recoveries-change]))
+(defn make-date [place d]
+  (assoc
+    (select-keys d [:date :deaths-change :cases-change :recoveries-change])
+    :place/country (place :country)
+    :place/state (place :state)
+    :place/county (place :county)))
 
 (defn make-txs [place]
   (concat
-    [[::xt/put
-      (->> (dissoc place :dates) (tag :place) (add-place-id :xt/id place))]]
     (for [date (:dates place)]
       [::xt/put (->>
                   date
-                  make-date
+                  (make-date place)
                   (tag :date)
-                  (add-date-id place)
-                  (add-place-id :place/id place))])
+                  (add-date-id place))])
     ))
 
 (defn put-place [node txs]
   (xt/submit-tx node txs))
 
 (defn get-places [node]
-  (xt/q (xt/db node) '{:find [(pull p [*])]
-                       :where [[p :type :place]]}))
+  (xt/q (xt/db node) '{:find [(pull d [:place/country :place/state :place/county])]
+                       :where [[d :type :date]]
+                       :timeout 240000}))
 
 (defn get-dates [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
-                       :where [[d :type :date]]}))
+                       :where [[d :type :date]]
+                       :timeout 240000}))
 
 (defn aggregate-date
   "given a list of date records all for the same day, sum them"
@@ -101,11 +105,9 @@
     '{:find [(pull d [*])]
       :where [
               [d :type :date]
-              [d :place/id p]
-              [p :type :place]
-              [p :country country]
-              [p :state state]
-              [p :county county]]
+              [d :place/country country]
+              [d :place/state state]
+              [d :place/county county]]
       :in [country state county]
       :timeout 240000}
     country state county)
@@ -121,10 +123,8 @@
     (xt/db node)
     '{:find [(pull d [*])]
       :where [[d :type :date]
-              [d :place/id p]
-              [p :type :place]
-              [p :country country]
-              [p :state state]]
+              [d :place/country country]
+              [d :place/state state]]
       :in [country state]
       :timeout 240000}
     country state)
@@ -140,9 +140,7 @@
     (xt/db node)
     '{:find [(pull d [*])]
       :where [[d :type :date]
-              [d :place/id p]
-              [p :type :place]
-              [p :country country]]
+              [d :place/country country]]
       :in [country]
       :timeout 240000}
     country)
@@ -156,38 +154,35 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull d [:country])]
-      :where [[d :type :place]
-              [d :current? true]]})
-   (map first)
-   distinct))
+    '{:find [(pull d [:place/country])]
+      :where [[d :type :date]]
+      :timeout 240000})
+   (map first)))
 
 (defn get-states [node country]
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull d [:country :state])]
-      :where [[d :type :place]
-              [d :country country]
-              [d :current? true]]
-      :in [country]}
+    '{:find [(pull d [:place/country :place/state])]
+      :where [[d :type :date]
+              [d :place/country country]]
+      :in [country]
+      :timeout 240000}
     country)
-   (map first)
-   distinct))
+   (map first)))
 
 (defn get-counties [node country state]
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull d [:country :state :county])]
-      :where [[d :type :place]
-              [d :country country]
-              [d :state state]
-              [d :current? true]]
-      :in [country state]}
+    '{:find [(pull d [:place/country :place/state :place/county])]
+      :where [[d :type :date]
+              [d :place/country country]
+              [d :place/state state]]
+      :in [country state]
+      :timeout 240000}
     country state)
-   (map first)
-   distinct))
+   (map first)))
 
 (comment
 

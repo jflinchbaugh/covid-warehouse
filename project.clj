@@ -15,5 +15,5 @@
                  [com.xtdb/xtdb-rocksdb "1.21.0"]]
   :main covid-warehouse.core
   :target-path "target/%s"
-  ;; :jvm-opts ["-server" "-XX:MaxRAMPercentage=75" "-XX:MinRAMPercentage=75"]
+  :jvm-opts ["-server" "-XX:MaxRAMPercentage=75" "-XX:MinRAMPercentage=75"]
   :profiles {:uberjar {:aot :all}})
