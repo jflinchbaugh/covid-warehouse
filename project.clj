@@ -9,7 +9,7 @@
                  [com.taoensso/timbre "5.2.1"]
                  [clojure.java-time "0.3.3"]
                  [hiccup "1.0.5"]
-                 [cheshire "5.10.2"]
+                 [cheshire "5.11.0"]
                  [org.clj-commons/digest "1.4.100"]
                  [com.xtdb/xtdb-core "1.21.0"]
                  [com.xtdb/xtdb-rocksdb "1.21.0"]]
