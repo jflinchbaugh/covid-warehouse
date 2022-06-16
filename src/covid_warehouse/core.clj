@@ -145,6 +145,7 @@ lein run history-file <file-name>
   (l/info (str "places: " (facts-storage node))))
 
 (defn history-place [xtdb-node [country state county]]
+  (l/info (str "history: " [country state county]))
   (doseq [h (xt/entity-history
              (xt/db xtdb-node)
              {:country country
@@ -156,6 +157,7 @@ lein run history-file <file-name>
     (l/info h)))
 
 (defn history-file [xtdb-node file-name]
+  (l/info (str "history: " file-name))
   (doseq
    [h (xt/entity-history
        (xt/db xtdb-node)
@@ -220,16 +222,17 @@ lein run history-file <file-name>
 
   ;; storage
 
-  (with-open [xtdb-node (start-xtdb!)]
-    (stage-all-storage xtdb-node "input"))
+  (stage-all-storage xtdb-node "input")
 
-  (with-open [xtdb-node (start-xtdb!)]
-    (facts-storage xtdb-node))
+  (facts-storage xtdb-node)
 
-  (with-open [xtdb-node (start-xtdb!)]
-    (get-stage-days xtdb-node))
+  (get-stage-days xtdb-node)
 
   (get-places xtdb-node)
+
+  (history-file xtdb-node "input/01-01-2022.csv")
+
+  (history-place xtdb-node ["US" "Pennsylvania" "Lancaster"])
 
   (->>
    ["US" "Pennsylvania" "York"]

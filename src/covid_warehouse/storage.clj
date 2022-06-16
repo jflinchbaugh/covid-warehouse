@@ -21,13 +21,19 @@
 (defn stop-xtdb! [node]
   (.close node))
 
+(defn day-id [rec]
+  (:file-name rec))
+
 (defn add-day-id
   [rec]
-  (assoc rec :xt/id (:file-name rec)))
+  (assoc rec :xt/id (day-id rec)))
+
+(defn place-id [rec]
+  (select-keys rec [:country :state :county]))
 
 (defn add-place-id
   [rec]
-  (assoc rec :xt/id (select-keys rec [:country :state :county])))
+  (assoc rec :xt/id (place-id rec)))
 
 (defn tag
   [type rec]
@@ -35,9 +41,11 @@
 
 (defn put-stage-day [node record]
   (xt/submit-tx
+    node
+    [[::xt/evict (day-id record)]])
+  (xt/submit-tx
    node
-   [[::xt/put
-     (->> record (tag :stage) add-day-id)]]))
+   [[::xt/put (->> record (tag :stage) add-day-id)]]))
 
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
@@ -45,7 +53,10 @@
                        :timeout 20000}))
 
 (defn put-place [node place]
-   (xt/submit-tx
+  (xt/submit-tx
+    node
+    [[::xt/evict (place-id place)]])
+  (xt/submit-tx
     node
     [[::xt/put
       (->> place (tag :fact) add-place-id)]]))
