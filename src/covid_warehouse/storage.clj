@@ -14,10 +14,6 @@
       :xtdb/document-store (kv-store "data/doc-store")
       :xtdb/index-store (kv-store "data/index-store")})))
 
-(defn await-txs [node txs]
-  (xt/await-tx node (last txs))
-  txs)
-
 (defn stop-xtdb! [node]
   (.close node))
 
@@ -40,12 +36,16 @@
   (assoc rec :type type))
 
 (defn put-stage-day [node record]
-  (xt/submit-tx
-    node
-    [[::xt/evict (day-id record)]])
-  (xt/submit-tx
+  (xt/await-tx
    node
-   [[::xt/put (->> record (tag :stage) add-day-id)]]))
+   (xt/submit-tx
+    node
+    [[::xt/evict (day-id record)]]))
+  (xt/await-tx
+   node
+   (xt/submit-tx
+    node
+    [[::xt/put (->> record (tag :stage) add-day-id)]])))
 
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
@@ -53,13 +53,17 @@
                        :timeout 20000}))
 
 (defn put-place [node place]
-  (xt/submit-tx
+  (xt/await-tx
+   node
+   (xt/submit-tx
     node
-    [[::xt/evict (place-id place)]])
-  (xt/submit-tx
+    [[::xt/evict (place-id place)]]))
+  (xt/await-tx
+   node
+   (xt/submit-tx
     node
     [[::xt/put
-      (->> place (tag :fact) add-place-id)]]))
+      (->> place (tag :fact) add-place-id)]])))
 
 (defn get-places [node]
   (xt/q (xt/db node) '{:find [p (pull p [*])]

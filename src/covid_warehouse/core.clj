@@ -105,7 +105,6 @@ lein run history-file <file-name>
               (io/file path)
               file->doc
               (put-stage-day node))))
-          (await-txs node)
           (count))))
 
 (defn facts-storage [node]
@@ -137,7 +136,6 @@ lein run history-file <file-name>
                 :date-latest (->> dates last :date)
                 :current? (> date-count 50)})))
           (pmap (partial put-place node))
-          (await-txs node)
           (count))))
 
 (defn load-data [node input-path]
