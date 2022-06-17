@@ -125,5 +125,9 @@
                :case-change 2
                :death-change-history 3
                :death-change -4
-               :date "d"}))))
-  )
+               :date "d"})))))
+
+(t/deftest test-graph-bar
+  (t/testing "graph-bar"
+    (t/is (= [:meter {:min 0 :max 2 :high 2 :value 1}]
+            (graph-bar 2 1)))))
