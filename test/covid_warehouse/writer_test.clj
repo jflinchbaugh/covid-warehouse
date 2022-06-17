@@ -92,5 +92,38 @@
   (t/testing "json report with no days"
     (let [html (report-json "" [])]
       (t/is (re-find
-              #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
-              html)))))
+             #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
+             html)))))
+
+(t/deftest test-day-row
+  (t/testing "render hiccup with values"
+    (t/is (= [:tr
+              [:td.date "d"]
+              [:td.death-change 4]
+              [:td.death-graph 9]
+              [:td.case-change 2]
+              [:td.case-graph 2]]
+             (day-row
+              #(* 2 %)
+              #(* 3 %)
+              {:case-change-history 1
+               :case-change 2
+               :death-change-history 3
+               :death-change 4
+               :date "d"}))))
+  (t/testing "render hiccup with negative values"
+    (t/is (= [:tr.negative
+              [:td.date "d"]
+              [:td.death-change -4]
+              [:td.death-graph 9]
+              [:td.case-change 2]
+              [:td.case-graph 2]]
+            (day-row
+              #(* 2 %)
+              #(* 3 %)
+              {:case-change-history 1
+               :case-change 2
+               :death-change-history 3
+               :death-change -4
+               :date "d"}))))
+  )
