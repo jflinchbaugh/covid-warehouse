@@ -95,17 +95,23 @@ lein run history-file <file-name>
 
 (defn stage-all-storage [node path]
   (timer "stage dates"
-         (->>
-          path
-          get-csv-files
-          (pmap
-           (fn [file-name]
-             (->>
-              file-name
-              (io/file path)
-              file->doc
-              (put-stage-day node))))
-          (count))))
+         (let [existing-checksums (get-stage-checksums node)
+               files (->>
+                      path
+                      get-csv-files
+                      (pmap (fn [f] (->> f (io/file path) file->checksum)))
+                      (remove (partial contains? existing-checksums))
+                      (pmap first))]
+           (->>
+            files
+            (pmap
+             (fn [file-name]
+               (->>
+                file-name
+                io/file
+                file->doc
+                (put-stage-day node))))
+            (count)))))
 
 (defn facts-storage [node]
   (timer "transform to facts"
@@ -225,6 +231,8 @@ lein run history-file <file-name>
   (facts-storage xtdb-node)
 
   (get-stage-days xtdb-node)
+
+  (get-stage-checksums xtdb-node)
 
   (get-places xtdb-node)
 

@@ -50,7 +50,17 @@
 (defn get-stage-days [node]
   (xt/q (xt/db node) '{:find [(pull d [*])]
                        :where [[d :type :stage]]
-                       :timeout 20000}))
+                       :timeout 240000}))
+
+(defn get-stage-checksums [node]
+  (->>
+    (xt/q
+      (xt/db node)
+      '{:find [(pull d [:file-name :checksum])]
+        :where [[d :type :stage]]
+        :timeout 240000})
+    (pmap (comp (juxt :file-name :checksum) first))
+    set))
 
 (defn put-place [node place]
   (xt/await-tx

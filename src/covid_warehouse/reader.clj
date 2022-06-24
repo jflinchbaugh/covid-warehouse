@@ -179,6 +179,9 @@
      :checksum checksum
      :places places}))
 
+(defn file->checksum [file]
+    [(str file) (digest/md5 file)])
+
 (comment
 
   (file->doc (io/file "input" "01-01-2022.csv"))
