@@ -106,11 +106,34 @@
       (t/is (re-find #"prepared" html)))))
 
 (t/deftest test-report-json
+  ;; TODO refactor to test map instead of rendered json string
   (t/testing "json report with no days"
-    (let [html (report-json "" [])]
+    (let [json (report-json "" [])]
       (t/is (re-find
-             #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
-             html)))))
+              #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
+              json))))
+  (t/testing "json report with 2 days"
+    (let [json (report-json "" [{:date "d1"
+                                 :death-change 1
+                                 :death-change-history 1
+                                 :case-change 12
+                                 :case-change-history 12}
+                                {:date "d2"
+                                 :death-change 9
+                                 :death-change-history 9
+                                 :case-change 8
+                                 :case-change-history 8
+                                 }])]
+      (t/is (re-find
+              #"title.*visualization.*total-cases.*total-deaths.*prepared.*days"
+              json))
+      (t/is (re-find
+             #"d1.*12.*1"
+             json))
+      (t/is (re-find
+              #"d2.*8.*9"
+              json))
+      )))
 
 (t/deftest test-day-row
   (t/testing "render hiccup with values"
