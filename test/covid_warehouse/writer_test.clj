@@ -84,9 +84,26 @@
     (t/is (= [-4 1 2 10] (drop-outliers-stddev 2 [-4 1 2 10])))))
 
 (t/deftest test-report-html
+  ;; TODO refactor to test hiccup instead of rendered html
   (t/testing "report with no days"
     (let [html (report-html "" [])]
-      (t/is (re-find #"Date.*Deaths.*Deaths.*Cases.*Cases.*Total" html)))))
+      (t/is (re-find #"Date.*Deaths.*Deaths.*Cases.*Cases.*Total" html))))
+  (t/testing "report with 2 days"
+    (let [html (report-html "" [{:date "d1"
+                                 :death-change 1
+                                 :death-change-history 1
+                                 :case-change 12
+                                 :case-change-history 12}
+                                {:date "d2"
+                                 :death-change 9
+                                 :death-change-history 9
+                                 :case-change 8
+                                 :case-change-history 8
+                                 }])]
+      (t/is (re-find #"Date.*Deaths.*Deaths.*Cases.*Cases.*Total" html))
+      (t/is (re-find #"d1.*1.*12" html))
+      (t/is (re-find #"d2.*9.*8" html))
+      (t/is (re-find #"prepared" html)))))
 
 (t/deftest test-report-json
   (t/testing "json report with no days"
