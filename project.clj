@@ -12,7 +12,8 @@
                  [cheshire "5.11.0"]
                  [org.clj-commons/digest "1.4.100"]
                  [com.xtdb/xtdb-core "1.21.0.1"]
-                 [com.xtdb/xtdb-rocksdb "1.21.0.1"]]
+                 [com.xtdb/xtdb-rocksdb "1.21.0.1"]
+                 [org.slf4j/slf4j-nop "1.7.36"]]
   :main covid-warehouse.core
   :target-path "target/%s"
   :jvm-opts ["-server" "-XX:MaxRAMPercentage=75" "-XX:MinRAMPercentage=75"]
