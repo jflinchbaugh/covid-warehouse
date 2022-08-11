@@ -16,5 +16,4 @@
                  [com.fzakaria/slf4j-timbre "0.3.21"]]
   :main covid-warehouse.core
   :target-path "target/%s"
-  :jvm-opts ["-server" "-XX:MaxRAMPercentage=75" "-XX:MinRAMPercentage=75"]
   :profiles {:uberjar {:aot :all}})
