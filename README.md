@@ -3,11 +3,18 @@
 Data warehouse built with pure Clojure to analyze COVID-19 data from JHU.
 
 ## Run the Warehouse from Source
-`lein run all ../COVID-19/csse_covid_19_data/csse_covid_19_daily_reports output`
+```
+export MALLOC_ARENA_MAX=2
+export JAVA_OPTS="-server -XX:MaxRAMPercentage=75 -XX:MinRAMPercentage=75 --add-opens java.base/java.util.concurrent=ALL-UNNAMED"
+lein run all ../COVID-19/csse_covid_19_data/csse_covid_19_daily_reports output
+```
 
 ## Run the Warehouse from Uberjar
+
 ```
-java -server -XX:MaxRAMPercentage=80 -XX:MinRAMPercentage=80 \
+export MALLOC_ARENA_MAX=2
+java -server -XX:MaxRAMPercentage=75 -XX:MinRAMPercentage=75 \
+     --add-opens java.base/java.util.concurrent=ALL-UNNAMED \
      -jar app.jar all \
      ../COVID-19/csse_covid_19_data/csse_covid_19_daily_reports \
      output
