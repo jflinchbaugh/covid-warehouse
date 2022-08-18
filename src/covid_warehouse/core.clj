@@ -37,18 +37,17 @@
           :recovery-change-history (int (mean recoveries))}))))))
 
 (defn report [node dest args]
-  (timer (str "  report " args)
-         (let [[country state county] args
-               series (roll-history
-                       7
-                       (dw-series node country state county))
-               q-file-name (file-name country state county)]
-           (spit
-            (str dest "/" (html-file-name q-file-name))
-            (report-html args series))
-           (spit
-            (str dest "/" (json-file-name q-file-name))
-            (report-json args series)))))
+  (let [[country state county] args
+        series (roll-history
+                 7
+                 (dw-series node country state county))
+        q-file-name (file-name country state county)]
+    (spit
+      (str dest "/" (html-file-name q-file-name))
+      (report-html args series))
+    (spit
+      (str dest "/" (json-file-name q-file-name))
+      (report-json args series))))
 
 (defn all-places
   "list all the places we care to see"
