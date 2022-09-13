@@ -3,7 +3,7 @@
 cd /data/in
 
 if [ -d .git ]; then
-    git pull --depth=1
+    git pull --depth=1 --rebase
 else
     git clone --depth=1 https://github.com/CSSEGISandData/COVID-19.git .
 fi
