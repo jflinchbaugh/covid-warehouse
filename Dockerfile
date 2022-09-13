@@ -8,7 +8,7 @@ RUN mkdir -p /app /data/in /data/out
 
 WORKDIR /app
 
-COPY target/uberjar/covid-warehouse-0.1.0-SNAPSHOT-standalone.jar app.jar
+COPY target/default+uberjar/covid-warehouse-0.1.0-SNAPSHOT-standalone.jar app.jar
 COPY entrypoint.sh entrypoint.sh
 
 CMD ./entrypoint.sh
