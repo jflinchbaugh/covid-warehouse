@@ -39,15 +39,15 @@
 (defn report [node dest args]
   (let [[country state county] args
         series (roll-history
-                 7
-                 (dw-series node country state county))
+                7
+                (dw-series node country state county))
         q-file-name (file-name country state county)]
     (spit
-      (str dest "/" (html-file-name q-file-name))
-      (report-html args series))
+     (str dest "/" (html-file-name q-file-name))
+     (report-html args series))
     (spit
-      (str dest "/" (json-file-name q-file-name))
-      (report-json args series))))
+     (str dest "/" (json-file-name q-file-name))
+     (report-json args series))))
 
 (defn all-places
   "list all the places we care to see"
@@ -97,20 +97,23 @@ lein run history-file <file-name>
          (let [existing-checksums (get-stage-checksums node)
                files (->>
                       path
-                      get-csv-files
-                      (pmap (fn [f] (->> f (io/file path) file->checksum)))
-                      (remove (partial contains? existing-checksums))
-                      (pmap first))]
-           (->>
-            files
-            (pmap
-             (fn [file-name]
-               (->>
-                file-name
-                io/file
-                file->doc
-                (put-stage-day node))))
-            (count)))))
+                      get-csv-files)
+               changed-files (->>
+                              files
+                              (pmap (fn [f] (->> f (io/file path) file->checksum)))
+                              (remove (partial contains? existing-checksums))
+                              (pmap first))
+               staged (->>
+                       changed-files
+                       (pmap
+                        (fn [file-name]
+                          (->>
+                           file-name
+                           io/file
+                           file->doc
+                           (put-stage-day node)))))]
+           {:staged (count staged)
+            :files (count files)})))
 
 (defn facts-storage [node]
   (timer "transform to facts"
@@ -144,7 +147,9 @@ lein run history-file <file-name>
           (count))))
 
 (defn load-data [node input-path]
-  (l/info (str "days: " (stage-all-storage node input-path)))
+  (let [loaded (stage-all-storage node input-path)]
+    (l/info (str "days changed: " (:staged loaded)))
+    (l/info (str "files present: " (:files loaded))))
   (l/info (str "places: " (facts-storage node))))
 
 (defn history-place [xtdb-node [country state county]]
