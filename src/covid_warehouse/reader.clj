@@ -1,7 +1,7 @@
 (ns covid-warehouse.reader
   (:require [covid-warehouse.timer :refer :all]
             [clojure.data.csv :as csv]
-            [java-time :as t]
+            [java-time.api :as t]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-commons.digest :as digest]))

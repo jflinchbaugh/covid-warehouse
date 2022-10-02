@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [xtdb.api :as xt]
             [covid-warehouse.timer :refer :all]
-            [java-time :as t]))
+            [java-time.api :as t]))
 
 (defn start-xtdb! []
   (letfn [(kv-store [dir]

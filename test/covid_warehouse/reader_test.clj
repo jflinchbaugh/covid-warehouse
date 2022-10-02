@@ -1,7 +1,7 @@
 (ns covid-warehouse.reader-test
   (:require [covid-warehouse.reader :refer :all]
             [clojure.test :refer :all]
-            [java-time :as t]))
+            [java-time.api :as t]))
 
 (deftest test-read-6
   (testing "read-6"
