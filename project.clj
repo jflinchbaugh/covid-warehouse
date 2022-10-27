@@ -11,8 +11,8 @@
                  [hiccup "1.0.5"]
                  [cheshire "5.11.0"]
                  [org.clj-commons/digest "1.4.100"]
-                 [com.xtdb/xtdb-core "1.22.0"]
-                 [com.xtdb/xtdb-rocksdb "1.22.0"]
+                 [com.xtdb/xtdb-core "1.22.1"]
+                 [com.xtdb/xtdb-rocksdb "1.22.1"]
                  [com.fzakaria/slf4j-timbre "0.3.21"]]
   :main covid-warehouse.core
   :target-path "target/%s"
