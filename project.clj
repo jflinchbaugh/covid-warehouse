@@ -7,7 +7,7 @@
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [org.clojure/data.csv "1.0.1"]
                  [com.taoensso/timbre "6.0.4"]
-                 [clojure.java-time "1.1.0"]
+                 [clojure.java-time "1.2.0"]
                  [hiccup "1.0.5"]
                  [cheshire "5.11.0"]
                  [org.clj-commons/digest "1.4.100"]
