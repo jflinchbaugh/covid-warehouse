@@ -178,31 +178,34 @@ lein run history-file <file-name>
 (defn -main
   [& args]
 
-  (timer "MAIN"
-         (let [[action & args] args]
-           (with-open [xtdb-node (start-xtdb!)]
-             (case action
-               "load"
-               (load-data xtdb-node (first args))
+  (timer
+   "MAIN"
+   (do
+     (let [[action & args] args]
+       (with-open [xtdb-node (start-xtdb!)]
+         (case action
+           "load"
+           (load-data xtdb-node (first args))
 
-               "report"
-               (report xtdb-node (first args) (rest args))
+           "report"
+           (report xtdb-node (first args) (rest args))
 
-               "publish-all"
-               (publish-all xtdb-node (first args))
+           "publish-all"
+           (publish-all xtdb-node (first args))
 
-               "all"
-               (do
-                 (load-data xtdb-node (first args))
-                 (publish-all xtdb-node (second args)))
+           "all"
+           (do
+             (load-data xtdb-node (first args))
+             (publish-all xtdb-node (second args)))
 
-               "history-place"
-               (history-place xtdb-node args)
+           "history-place"
+           (history-place xtdb-node args)
 
-               "history-file"
-               (history-file xtdb-node (first args))
+           "history-file"
+           (history-file xtdb-node (first args))
 
-               (usage-message))))))
+           (usage-message))))
+     (shutdown-agents))))
 
 (comment
 
