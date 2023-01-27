@@ -87,7 +87,7 @@
         sum-cases (reduce + (map :cases-change col))
         sum-deaths (reduce + (map :deaths-change col))
         sum-recoveries (reduce + (map :recoveries-change col))]
-    {:date (tc/format date (tc/formatter "yyyy-MM-dd"))
+    {:date (tc/format (tc/formatter "yyyy-MM-dd") date)
      :case-change sum-cases
      :death-change sum-deaths
      :recovery-change sum-recoveries}))
