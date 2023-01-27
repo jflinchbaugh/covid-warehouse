@@ -1,7 +1,7 @@
 (ns covid-warehouse.reader-test
   (:require [covid-warehouse.reader :refer :all]
             [clojure.test :refer :all]
-            [java-time.api :as t]))
+            [tick.core :as tc]))
 
 (deftest test-read-6
   (testing "read-6"
@@ -83,13 +83,13 @@
 (deftest test-fix-date
   (testing "fix-date"
     (are [in out] (= out (fix-date in))
-      {:date "01/02/2010"} {:date (t/local-date "2010-01-01")}
-      {:date "01/02/10"} {:date (t/local-date "2010-01-01")}
-      {:date "01/02/2010 01:01"} {:date (t/local-date "2010-01-01")}
-      {:date "01/02/10 01:01"} {:date (t/local-date "2010-01-01")}
-      {:date "2010-01-02T01:01:01"} {:date (t/local-date "2010-01-01")}
-      {:date "2010-01-02 01:01:01"} {:date (t/local-date "2010-01-01")}
-      {:date "2010-01-02 01:01"} {:date (t/local-date "2010-01-01")}
+      {:date "01/02/2010"} {:date (tc/date "2010-01-01")}
+      {:date "01/02/10"} {:date (tc/date "2010-01-01")}
+      {:date "01/02/2010 01:01"} {:date (tc/date "2010-01-01")}
+      {:date "01/02/10 01:01"} {:date (tc/date "2010-01-01")}
+      {:date "2010-01-02T01:01:01"} {:date (tc/date "2010-01-01")}
+      {:date "2010-01-02 01:01:01"} {:date (tc/date "2010-01-01")}
+      {:date "2010-01-02 01:01"} {:date (tc/date "2010-01-01")}
       ))
 
   (testing "fix-date error"

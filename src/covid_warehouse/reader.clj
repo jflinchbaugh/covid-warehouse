@@ -1,7 +1,7 @@
 (ns covid-warehouse.reader
   (:require [covid-warehouse.timer :refer :all]
             [clojure.data.csv :as csv]
-            [java-time.api :as t]
+            [tick.core :as tc]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-commons.digest :as digest]))
@@ -63,18 +63,50 @@
       (IllegalArgumentException. (str (count line) " is too many: " (seq line)))))
    line))
 
+(defn- convert-date-str [fmt-str s]
+  (-> s
+      (tc/parse-date (tc/formatter fmt-str))
+      (tc/at (tc/time "00:00"))))
+
+(defn- convert-date-time-str [fmt-str s]
+  (tc/parse-date-time s (tc/formatter fmt-str)))
+
 (defn parse-date [s]
-  (t/adjust
+  (->
    (cond
-     (re-matches #"\d+/\d+/\d{4}" s) (t/local-date "M/d/yyyy" s)
-     (re-matches #"\d+/\d+/\d{2}" s) (t/local-date "M/d/yy" s)
-     (re-matches #"\d+/\d+/\d{2} \d+:\d+" s) (t/local-date "M/d/yy H:m" s)
-     (re-matches #"\d+/\d+/\d{4} \d+:\d+" s) (t/local-date "M/d/yyyy H:m" s)
-     (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s) (t/local-date "y-M-d'T'H:m:s" s)
-     (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s) (t/local-date "y-M-d H:m:s" s)
-     (re-matches #"\d+-\d+-\d+ \d+:\d+" s) (t/local-date "y-M-d H:m" s)
-     :else (throw (IllegalArgumentException. (str "Bad date: " s))))
-   t/minus (t/days 1)))
+     (re-matches #"\d+/\d+/\d{4}" s)
+     (convert-date-str "M/d/yyyy" s)
+
+     (re-matches #"\d+/\d+/\d{2}" s)
+     (convert-date-str "M/d/yy" s)
+
+     (re-matches #"\d+/\d+/\d{2} \d+:\d+" s)
+     (convert-date-time-str "M/d/yy H:m" s)
+
+     (re-matches #"\d+/\d+/\d{4} \d+:\d+" s)
+     (convert-date-time-str "M/d/yyyy H:m" s)
+
+     (re-matches #"\d+-\d+-\d+T\d+:\d+:\d+" s)
+     (convert-date-time-str "y-M-d'T'H:m:s" s)
+
+     (re-matches #"\d+-\d+-\d+ \d+:\d+:\d+" s)
+     (convert-date-time-str "y-M-d H:m:s" s)
+
+     (re-matches #"\d+-\d+-\d+ \d+:\d+" s)
+     (convert-date-time-str "y-M-d H:m" s)
+
+     :else
+     (throw (IllegalArgumentException. (str "Bad date: " s))))
+   (tc/<< (tc/new-duration 1 :days))
+   tc/date))
+
+(comment
+
+  (parse-date "12/10/2000")
+  ;; => #time/date "2000-12-09"
+
+;
+  )
 
 (defn fix-date [m] (update-in m [:date] parse-date))
 
@@ -162,29 +194,28 @@
 
 (defn file->doc [file]
   (let [places (->>
-                 file
-                 io/reader
-                 csv/read-csv
-                 rest
-                 (remove overlap-location?)
-                 (pmap
-                   (comp
-                     unify-countries
-                     fix-numbers
-                     fix-date
-                     cols->maps
-                     trim-all-fields)))
+                file
+                io/reader
+                csv/read-csv
+                rest
+                (remove overlap-location?)
+                (pmap
+                 (comp
+                  unify-countries
+                  fix-numbers
+                  fix-date
+                  cols->maps
+                  trim-all-fields)))
         checksum (digest/md5 file)]
     {:file-name (str file)
      :checksum checksum
      :places places}))
 
 (defn file->checksum [file]
-    [(str file) (digest/md5 file)])
+  [(str file) (digest/md5 file)])
 
 (comment
 
   (file->doc (io/file "input" "01-01-2022.csv"))
-
 
   nil)

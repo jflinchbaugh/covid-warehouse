@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [xtdb.api :as xt]
             [covid-warehouse.timer :refer :all]
-            [java-time.api :as t]))
+            [tick.core :as tc]))
 
 (defn start-xtdb! []
   (letfn [(kv-store [dir]
@@ -87,7 +87,7 @@
         sum-cases (reduce + (map :cases-change col))
         sum-deaths (reduce + (map :deaths-change col))
         sum-recoveries (reduce + (map :recoveries-change col))]
-    {:date (t/format "yyyy-MM-dd" date)
+    {:date (tc/format date (tc/formatter "yyyy-MM-dd"))
      :case-change sum-cases
      :death-change sum-deaths
      :recovery-change sum-recoveries}))
