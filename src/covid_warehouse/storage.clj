@@ -40,11 +40,6 @@
    node
    (xt/submit-tx
     node
-    [[::xt/evict (day-id record)]]))
-  (xt/await-tx
-   node
-   (xt/submit-tx
-    node
     [[::xt/put (->> record (tag :stage) add-day-id)]])))
 
 (defn get-stage-days [node]
@@ -63,11 +58,6 @@
     set))
 
 (defn put-place [node place]
-  (xt/await-tx
-   node
-   (xt/submit-tx
-    node
-    [[::xt/evict (place-id place)]]))
   (xt/await-tx
    node
    (xt/submit-tx
@@ -194,10 +184,6 @@
   (get-dates-by-county xtdb-node ["US" "Pennsylvania" "Lancaster"])
 
   (xt/sync xtdb-node)
-
-  (xt/submit-tx xtdb-node [[::xt/put {:xt/id "zig" :name "zig"}]])
-
-  (xt/submit-tx xtdb-node [[::xt/evict "zig"]])
 
   (xt/q
    (xt/db xtdb-node)
