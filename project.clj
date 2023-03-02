@@ -6,7 +6,7 @@
   :plugins []
   :dependencies [[org.clojure/clojure "1.11.1"]
                  [org.clojure/data.csv "1.0.1"]
-                 [com.taoensso/timbre "6.0.4"]
+                 [com.taoensso/timbre "6.1.0"]
                  [tick/tick "0.5.0"]
                  [hiccup "1.0.5"]
                  [cheshire "5.11.0"]
