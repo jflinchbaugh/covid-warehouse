@@ -175,6 +175,17 @@ lein run history-file <file-name>
         :with-docs? false})]
     (l/info h)))
 
+(defn list-files [xtdb-node]
+  (doseq
+      [f (sort
+           (map
+            first
+            (xt/q
+              (xt/db xtdb-node)
+              '{:find [d]
+                :where [[d :type :stage]]})))]
+    (l/info f)))
+
 (defn -main
   [& args]
 
@@ -204,6 +215,9 @@ lein run history-file <file-name>
            "history-file"
            (history-file xtdb-node (first args))
 
+           "list-files"
+           (list-files xtdb-node)
+
            (usage-message))))
      (shutdown-agents))))
 
@@ -224,6 +238,8 @@ lein run history-file <file-name>
   (-main "history-place" "US" "Pennsylvania" "Lancaster")
 
   (-main "history-file" "input/01-01-2021.csv")
+
+  (-main "list-files")
 
   (report xtdb-node "output" ["US" "Pennsylvania" "Allegheny"])
 
@@ -298,14 +314,13 @@ lein run history-file <file-name>
       :timeout 6000}))
 
   (->>
-   (xt/q
-    (xt/db xtdb-node)
-    '{:find [(pull d [:country :state :county {:dates [*]}])]
-      :where [[d :type :fact]
-              [d :country "US"]
-              [d :state "Pennsylvania"]
-              [d :county "Lancaster"]]
-      :timeout 6000}))
+   (xt/q (xt/db xtdb-node)
+         '{:find [(pull d [:country :state :county {:dates [*]}])]
+           :where [[d :type :fact]
+                   [d :country "US"]
+                   [d :state "Pennsylvania"]
+                   [d :county "Lancaster"]]
+           :timeout 6000}))
 
   (all-places xtdb-node)
 
