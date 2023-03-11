@@ -4,7 +4,13 @@
             [covid-warehouse.timer :refer :all]
             [tick.core :as tc]))
 
-(defn start-xtdb! []
+(def xtdb-server-url "http://localhost:4321/")
+
+(defn start-xtdb!
+  []
+  (xt/new-api-client xtdb-server-url))
+
+#_(defn start-xtdb! []
   (letfn [(kv-store [dir]
             {:kv-store {:xtdb/module 'xtdb.rocksdb/->kv-store
                         :db-dir (io/file dir)
@@ -77,7 +83,7 @@
         sum-cases (reduce + (map :cases-change col))
         sum-deaths (reduce + (map :deaths-change col))
         sum-recoveries (reduce + (map :recoveries-change col))]
-    {:date (tc/format (tc/formatter "yyyy-MM-dd") date)
+    {:date date
      :case-change sum-cases
      :death-change sum-deaths
      :recovery-change sum-recoveries}))

@@ -108,7 +108,7 @@
 ;
   )
 
-(defn fix-date [m] (update-in m [:date] parse-date))
+(defn fix-date [m] (update-in m [:date] (comp str parse-date)))
 
 (defn- parse-int [i] (when-not (str/blank? i) (int (Double/parseDouble i))))
 
@@ -182,15 +182,6 @@
 (defn trim-all-fields
   [m]
   (map str/trim m))
-
-(defn get-data-from-files [input-dir]
-  (->>
-   input-dir
-   read-csv
-   (remove overlap-location?)
-   (pmap (comp unify-countries fix-numbers fix-date cols->maps trim-all-fields))
-   latest-daily
-   amend-changes))
 
 (defn file->doc [file]
   (let [places (->>
