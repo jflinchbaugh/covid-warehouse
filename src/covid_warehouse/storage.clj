@@ -10,16 +10,6 @@
   []
   (xt/new-api-client xtdb-server-url))
 
-#_(defn start-xtdb! []
-  (letfn [(kv-store [dir]
-            {:kv-store {:xtdb/module 'xtdb.rocksdb/->kv-store
-                        :db-dir (io/file dir)
-                        :sync? true}})]
-    (xt/start-node
-     {:xtdb/tx-log (kv-store "data/tx-log")
-      :xtdb/document-store (kv-store "data/doc-store")
-      :xtdb/index-store (kv-store "data/index-store")})))
-
 (defn stop-xtdb! [node]
   (.close node))
 
