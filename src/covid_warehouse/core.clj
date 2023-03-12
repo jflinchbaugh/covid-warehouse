@@ -88,8 +88,9 @@ lein run all <input-dir> <output-dir>
 lein run load <input-dir>
 lein run report <output-dir> <country> [state] [county]
 lein run publish-all <output-dir>
-lein run history-place <country> <state> <county>
+lein run list-files
 lein run history-file <file-name>
+lein run history-place <country> <state> <county>
 "))
 
 (defn stage-all-storage [node path]
