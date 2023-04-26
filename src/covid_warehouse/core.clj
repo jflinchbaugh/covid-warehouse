@@ -7,7 +7,10 @@
             [covid-warehouse.storage :refer :all]
             [clojure.java.io :as io]
             [taoensso.timbre :as l]
+            [tablecloth.api :as tc]
             [xtdb.api :as xt]))
+
+(l/merge-config! {:ns-filter #{"covid-warehouse.*"}})
 
 (defn dw-series [node country state county]
   (doall
