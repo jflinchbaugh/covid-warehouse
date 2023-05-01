@@ -120,7 +120,7 @@ lein run history-place <country> <state> <county>
   (timer "transform to facts"
          (->>
           (get-stage-days node)
-          (map (comp :places first))
+          (map :places)
           (reduce concat)
           latest-daily
           (sort-by table-keys)
@@ -180,11 +180,11 @@ lein run history-place <country> <state> <county>
   (doseq
    [f (sort
        (map
-        first
+         (comp keys->mem first)
         (xt/q
          (xt/db xtdb-node)
          '{:find [d]
-           :where [[d :type :stage]]})))]
+           :where [[d :covid-warehouse.stage.day/type :stage]]})))]
     (l/info f)))
 
 (defn -main

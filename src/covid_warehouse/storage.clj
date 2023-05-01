@@ -31,27 +31,52 @@
   [type rec]
   (assoc rec :type type))
 
+(defn keys->db [namespace record]
+  (update-keys record
+               (fn [k]
+                 (if (= :xt/id k) k (keyword (str namespace "/" (name k)))))))
+
+(defn keys->mem [record]
+  (update-keys record (comp keyword name)))
+
 (defn put-stage-day [node record]
   (xt/await-tx
    node
    (xt/submit-tx
     node
-    [[::xt/put (->> record (tag :stage) add-day-id)]])))
+    [[::xt/put
+      (->>
+       record
+       (tag :stage)
+       add-day-id
+       (keys->db "covid-warehouse.stage.day"))]])))
 
 (defn get-stage-days [node]
-  (xt/q (xt/db node) '{:find [(pull d [*])]
-                       :where [[d :type :stage]]
-                       :timeout 240000}))
+  (map (comp keys->mem first)
+   (xt/q
+    (xt/db node)
+    '{:find [(pull d [*])]
+      :where [[d :covid-warehouse.stage.day/type :stage]]
+      :timeout 240000})))
 
 (defn get-stage-checksums [node]
   (->>
-    (xt/q
-      (xt/db node)
-      '{:find [(pull d [:file-name :checksum])]
-        :where [[d :type :stage]]
-        :timeout 240000})
-    (pmap (comp (juxt :file-name :checksum) first))
-    set))
+   (xt/q
+    (xt/db node)
+    '{:find
+      [(pull
+        d
+        [:covid-warehouse.stage.day/file-name
+         :covid-warehouse.stage.day/checksum])]
+      :where [[d :covid-warehouse.stage.day/type :stage]]
+      :timeout 240000})
+   (pmap
+    (comp
+     (juxt
+      :covid-warehouse.stage.day/file-name
+      :covid-warehouse.stage.day/checksum)
+     first))
+   set))
 
 (defn put-place [node place]
   (xt/await-tx
@@ -59,12 +84,19 @@
    (xt/submit-tx
     node
     [[::xt/put
-      (->> place (tag :fact) add-place-id)]])))
+      (->>
+       place
+       (tag :fact)
+       add-place-id
+       (keys->db "covid-warehouse.fact.place"))]])))
 
 (defn get-places [node]
-  (xt/q (xt/db node) '{:find [p (pull p [*])]
-                       :where [[p :type :fact]
-                               [p :current? true]]}))
+  (map (comp keys->mem first)
+   (xt/q
+    (xt/db node)
+    '{:find [p (pull p [*])]
+      :where [[p :covid-warehouse.fact.place/type :fact]
+              [p :covid-warehouse.fact.place/current? true]]})))
 
 (defn aggregate-date
   "given a list of date records all for the same day, sum them"
@@ -82,14 +114,14 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull p [:dates])]
-      :where [[p :type :fact]
-              [p :country country]
-              [p :state state]
-              [p :county county]]
+    '{:find [(pull p [:covid-warehouse.fact.place/dates])]
+      :where [[p :covid-warehouse.fact.place/type :fact]
+              [p :covid-warehouse.fact.place/country country]
+              [p :covid-warehouse.fact.place/state state]
+              [p :covid-warehouse.fact.place/county county]]
       :in [country state county]}
     country state county)
-   (map (comp :dates first))
+   (map (comp :dates keys->mem first))
    (reduce concat)
    (sort-by :date)
    (partition-by :date)
@@ -100,13 +132,13 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull p [:dates])]
-      :where [[p :type :fact]
-              [p :country country]
-              [p :state state]]
+    '{:find [(pull p [:covid-warehouse.fact.place/dates])]
+      :where [[p :covid-warehouse.fact.place/type :fact]
+              [p :covid-warehouse.fact.place/country country]
+              [p :covid-warehouse.fact.place/state state]]
       :in [country state]}
     country state)
-   (map (comp :dates first))
+   (map (comp :dates keys->mem first))
    (reduce concat)
    (sort-by :date)
    (partition-by :date)
@@ -117,12 +149,12 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull p [:dates])]
-      :where [[p :type :fact]
-              [p :country country]]
+    '{:find [(pull p [:covid-warehouse.fact.place/dates])]
+      :where [[p :covid-warehouse.fact.place/type :fact]
+              [p :covid-warehouse.fact.place/country country]]
       :in [country]}
     country)
-   (map (comp :dates first))
+   (map (comp :dates keys->mem first))
    (reduce concat)
    (sort-by :date)
    (partition-by :date)
@@ -133,10 +165,10 @@
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull d [:country])]
-      :where [[d :type :fact]
-              [d :current? true]]})
-   (map first)
+    '{:find [(pull d [:covid-warehouse.fact.place/country])]
+      :where [[d :covid-warehouse.fact.place/type :fact]
+              [d :covid-warehouse.fact.place/current? true]]})
+   (map (comp keys->mem first))
    distinct))
 
 (defn get-states [node country]
@@ -149,21 +181,23 @@
               [d :current? true]]
       :in [country]}
     country)
-   (map first)
+   (map (comp keys->mem first))
    distinct))
 
 (defn get-counties [node country state]
   (->>
    (xt/q
     (xt/db node)
-    '{:find [(pull d [:country :state :county])]
-      :where [[d :type :fact]
-              [d :country country]
-              [d :state state]
-              [d :current? true]]
+    '{:find [(pull d [:covid-warehouse.fact.place/country
+                      :covid-warehouse.fact.place/state
+                      :covid-warehouse.fact.place/county])]
+      :where [[d :covid-warehouse.fact.place/type :fact]
+              [d :covid-warehouse.fact.place/country country]
+              [d :covid-warehouse.fact.place/state state]
+              [d :covid-warehouse.fact.place/current? true]]
       :in [country state]}
     country state)
-   (map first)
+   (map (comp keys->mem first))
    distinct))
 
 (comment
@@ -184,11 +218,11 @@
   (xt/q
    (xt/db xtdb-node)
    '{:find [e]
-     :where [[e :country country]
-             [e :state state]
-             [e :county county]
-             [e :dates ds]
-             [ds :date _]]
+     :where [[e :covid-warehouse.fact.place/country country]
+             [e :covid-warehouse.fact.place/state state]
+             [e :covid-warehouse.fact.place/county county]
+             [e :covid-warehouse.fact.place/dates ds]
+             [ds :covid-warehouse.fact.place/date _]]
      :in [country state county]}
    "US" "Pennsylvania" "York")
 
