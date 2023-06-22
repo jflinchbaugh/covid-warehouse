@@ -13,8 +13,8 @@
                  [cheshire "5.11.0"]
                  [scicloj/tablecloth "6.103.1"]
                  [org.clj-commons/digest "1.4.100"]
-                 [com.xtdb/xtdb-http-client "1.23.2"]
-                 [com.fzakaria/slf4j-timbre "0.3.21"]]
+                 [com.xtdb/xtdb-http-client "1.23.3"]
+                 [com.fzakaria/slf4j-timbre "0.4.0"]]
   :main covid-warehouse.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})
