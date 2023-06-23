@@ -1,7 +1,7 @@
 (ns covid-warehouse.reader
   (:require [covid-warehouse.timer :refer :all]
             [clojure.data.csv :as csv]
-            [tick.core :as tc]
+            [tick.core :as t]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [clj-commons.digest :as digest]))
@@ -65,11 +65,11 @@
 
 (defn- convert-date-str [fmt-str s]
   (-> s
-      (tc/parse-date (tc/formatter fmt-str))
-      (tc/at (tc/time "00:00"))))
+      (t/parse-date (t/formatter fmt-str))
+      (t/at (t/time "00:00"))))
 
 (defn- convert-date-time-str [fmt-str s]
-  (tc/parse-date-time s (tc/formatter fmt-str)))
+  (t/parse-date-time s (t/formatter fmt-str)))
 
 (defn parse-date [s]
   (->
@@ -97,8 +97,8 @@
 
      :else
      (throw (IllegalArgumentException. (str "Bad date: " s))))
-   (tc/<< (tc/new-duration 1 :days))
-   tc/date))
+   (t/<< (t/new-duration 1 :days))
+   t/date))
 
 (comment
 
