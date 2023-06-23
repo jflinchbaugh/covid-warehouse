@@ -59,6 +59,20 @@
       :where [[d :covid-warehouse.stage.day/type :stage]]
       :timeout 240000})))
 
+(defn delete-stage-days [node]
+  (let [db (xt/db node)
+        days (map
+               first
+               (xt/q db
+                          '{:find [d]
+                            :where [[d :covid-warehouse.stage.day/type :stage]]}))
+        ops (map (fn [d] [::xt/delete d]) days)]
+    (xt/await-tx
+      node
+      (xt/submit-tx node ops))
+    )
+  )
+
 (defn get-stage-checksums [node]
   (->>
    (xt/q
