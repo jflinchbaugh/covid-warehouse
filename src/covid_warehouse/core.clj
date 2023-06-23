@@ -94,6 +94,7 @@ lein run publish-all <output-dir>
 lein run list-files
 lein run history-file <file-name>
 lein run history-place <country> <state> <county>
+lein run delete-stage-days
 "))
 
 (defn stage-all-storage [node path]
@@ -218,6 +219,9 @@ lein run history-place <country> <state> <county>
 
            "list-files"
            (list-files xtdb-node)
+
+           "delete-stage-days"
+           (delete-stage-days xtdb-node)
 
            (usage-message))))
      (shutdown-agents))))
