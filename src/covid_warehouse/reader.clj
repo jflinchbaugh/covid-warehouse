@@ -4,29 +4,8 @@
             [tick.core :as t]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [clj-commons.digest :as digest]))
-
-(defn read-6 [[n2 n3 n4 n5 n6 n7]]
-  {:county ""
-   :state n2
-   :country n3
-   :date n4
-   :cases n5
-   :deaths n6
-   :recoveries n7})
-
-(def read-8 read-6)
-
-(defn read-12 [[_ n1 n2 n3 n4 _ _ n7 n8 n9]]
-  {:county n1
-   :state n2
-   :country n3
-   :date n4
-   :cases n7
-   :deaths n8
-   :recoveries n9})
-
-(def read-14 read-12)
+            [clj-commons.digest :as digest]
+            [tablecloth.api :as tc]))
 
 (defn get-csv-files [path]
   (->> path
@@ -40,28 +19,6 @@
    get-csv-files
    (map
     (fn [f] [f (->> f (io/file path) digest/md5)]))))
-
-(defn read-csv [path]
-  (->>
-   path
-   get-csv-files
-   (map
-    (comp
-     rest
-     csv/read-csv
-     io/reader
-     (partial io/file path)))
-   (reduce concat)))
-
-(defn cols->maps [line]
-  ((case (count line)
-     6 read-6
-     8 read-8
-     12 read-12
-     14 read-14
-     (throw
-      (IllegalArgumentException. (str (count line) " is too many: " (seq line)))))
-   line))
 
 (defn- convert-date-str [fmt-str s]
   (-> s
@@ -100,27 +57,9 @@
    (t/<< (t/new-duration 1 :days))
    t/date))
 
-(comment
-
-  (parse-date "12/10/2000")
-  ;; => #time/date "2000-12-09"
-
-;
-  )
-
-(defn fix-date [m] (update-in m [:date] (comp str parse-date)))
-
-(defn- parse-int [i] (when-not (str/blank? i) (int (Double/parseDouble i))))
-
 (def location-grouping (juxt :country :state :county))
 
 (def table-keys (juxt :country :state :county :date))
-
-(defn fix-numbers [m]
-  (-> m
-      (update-in [:cases] parse-int)
-      (update-in [:deaths] parse-int)
-      (update-in [:recoveries] parse-int)))
 
 (defn calc-changes
   "given the list of days, calculate daily changes and add it to the list"
@@ -165,48 +104,59 @@
        vals
        flatten))
 
-(defn unify-countries
-  "unify historic names of countries. if nothing matches, then pass through."
-  [m]
-  (update-in
-   m
-   [:country]
-   #(get {"UK" "United Kingdom"
-          "Mainland China" "China"
-          "Taiwan" "Taiwan*"
-          "South Korea" "Korea, South"} % %))) ; pass-through if not found
+(defn unify-country-name [c]
+  (get {"UK" "United Kingdom"
+        "Mainland China" "China"
+        "Taiwan" "Taiwan*"
+        "South Korea" "Korea, South"} c c) ; pass-through if not found
+  )
 
 (defn overlap-location? [r]
   (= ((juxt :country :state :county) r) ["US" "New York" "New York City"]))
 
-(defn trim-all-fields
-  [m]
-  (map str/trim m))
+(defn file->checksum [file]
+  [(str file) (digest/md5 file)])
 
-(defn file->doc [file]
-  (let [places (->>
-                file
-                io/reader
-                csv/read-csv
-                rest
-                (remove overlap-location?)
-                (pmap
-                 (comp
-                  unify-countries
-                  fix-numbers
-                  fix-date
-                  cols->maps
-                  trim-all-fields)))
+(def column-map
+  {:admin2 :county
+   :province_state :state
+   :province/state :state
+   :country_region :country
+   :country/region :country
+   :confirmed :cases
+   :deaths :deaths
+   :case-fatality_ratio :case-fatality-ratio
+   :case_fatality_ratio :case-fatality-ratio
+   :recovered :recoveries
+   :incident_rate :incident-rate
+   :incidence_rate :incident-rate
+   :lat :latitude
+   :long_ :longitude
+   :last_update :date
+   (keyword "last update") :date})
+
+(defn cleanup [ds]
+  (-> ds
+    (tc/rename-columns column-map)
+    (tc/drop-rows overlap-location?)
+    (tc/update-columns
+      {:date (partial pmap (comp str parse-date))
+       :country (partial pmap unify-country-name)})
+    (tc/select-columns
+      [:county :state :country :date :cases :deaths :recoveries])
+    (tc/replace-missing [:county :state :country] :value "")))
+
+(defn file->dataset [file]
+  (let [places (-> file
+                 (tc/dataset {:key-fn (comp keyword str/lower-case)})
+                 cleanup
+                 (tc/rows :as-maps)
+                 seq)
         checksum (digest/md5 file)]
     {:file-name (str file)
      :checksum checksum
      :places places}))
 
-(defn file->checksum [file]
-  [(str file) (digest/md5 file)])
-
 (comment
-
-  (file->doc (io/file "input" "01-01-2022.csv"))
 
   nil)
