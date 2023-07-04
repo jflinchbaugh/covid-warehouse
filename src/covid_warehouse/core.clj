@@ -111,7 +111,7 @@ lein run delete-stage-days
                          (->>
                           file-name
                           io/file
-                          file->dataset
+                          file->doc
                           (put-stage-day node)))
                        changed-files)]
            {:staged (count staged)

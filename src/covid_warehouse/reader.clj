@@ -13,13 +13,6 @@
        .list
        (filter (partial re-matches #".*\.csv"))))
 
-(defn read-checksums [path]
-  (->>
-   path
-   get-csv-files
-   (map
-    (fn [f] [f (->> f (io/file path) digest/md5)]))))
-
 (defn- convert-date-str [fmt-str s]
   (-> s
       (t/parse-date (t/formatter fmt-str))
@@ -82,18 +75,6 @@
         (or (:recoveries new) 0)
         (or (:recoveries prev) 0))}))))
 
-(defn amend-changes
-  "iterate the whole list and add change fields for each day based on previous"
-  [col]
-  (->> col
-       (sort-by table-keys)
-       (group-by location-grouping)
-       (reduce-kv
-        (fn [m k v]
-          (assoc m k (reduce calc-changes [] v))) {})
-       vals
-       flatten))
-
 (defn latest-daily [col]
   (->> col
        (sort-by table-keys)
@@ -146,7 +127,7 @@
       [:county :state :country :date :cases :deaths :recoveries])
     (tc/replace-missing [:county :state :country] :value "")))
 
-(defn file->dataset [file]
+(defn file->doc [file]
   (let [places (-> file
                  (tc/dataset {:key-fn (comp keyword str/lower-case)})
                  cleanup
@@ -156,7 +137,3 @@
     {:file-name (str file)
      :checksum checksum
      :places places}))
-
-(comment
-
-  nil)

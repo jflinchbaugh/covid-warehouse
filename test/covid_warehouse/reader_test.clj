@@ -43,31 +43,3 @@
             :state "s1"
             :county "c1"
             :date "d1"}]))))
-
-(deftest test-amend-changes
-  (is (= [] (amend-changes nil)))
-  (is (= [] (amend-changes [])))
-  (is (=
-       [{:x 1 :cases-change 0 :deaths-change 0 :recoveries-change 0}]
-       (amend-changes [{:x 1}])))
-  (is (=
-       [{:x 1 :cases-change 0 :deaths-change 0 :recoveries-change 0}
-        {:x 2 :cases-change 0 :deaths-change 0 :recoveries-change 0}]
-       (amend-changes [{:x 1} {:x 2}])))
-  (is (=
-       [{:x 1
-         :cases 1
-         :cases-change 1
-         :deaths 1
-         :deaths-change 1
-         :recoveries 1
-         :recoveries-change 1}
-        {:x 2
-         :cases 2
-         :cases-change 1
-         :deaths 3
-         :deaths-change 2
-         :recoveries 4
-         :recoveries-change 3}]
-       (amend-changes [{:x 1 :cases 1 :deaths 1 :recoveries 1}
-                       {:x 2 :cases 2 :deaths 3 :recoveries 4}]))))
