@@ -11,7 +11,8 @@
   (->> path
        io/file
        .list
-       (filter (partial re-matches #".*\.csv"))))
+       (filter (partial re-matches #".*\.csv"))
+       sort))
 
 (defn- convert-date-str [fmt-str s]
   (-> s
@@ -121,8 +122,8 @@
     (tc/rename-columns column-map)
     (tc/drop-rows overlap-location?)
     (tc/update-columns
-      {:date (partial pmap (comp str parse-date))
-       :country (partial pmap unify-country-name)})
+      {:date (partial map (comp str parse-date))
+       :country (partial map unify-country-name)})
     (tc/select-columns
       [:county :state :country :date :cases :deaths :recoveries])
     (tc/replace-missing [:county :state :country] :value "")))
