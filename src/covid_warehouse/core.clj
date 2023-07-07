@@ -117,6 +117,18 @@ lein run delete-stage-days
            {:staged (count staged)
             :files (count files)})))
 
+(def table-keys (juxt :country :state :county :date))
+
+(defn latest-daily [col]
+  (->> col
+    (sort-by table-keys)
+    (group-by table-keys)
+    (reduce-kv
+      (fn [m k v]
+        (assoc m k (last v))) {})
+    vals
+    flatten))
+
 (defn facts-storage [node]
   (timer "transform to facts"
          (->>

@@ -53,8 +53,6 @@
 
 (def location-grouping (juxt :country :state :county))
 
-(def table-keys (juxt :country :state :county :date))
-
 (defn calc-changes
   "given the list of days, calculate daily changes and add it to the list"
   [lst new]
@@ -75,16 +73,6 @@
        (-
         (or (:recoveries new) 0)
         (or (:recoveries prev) 0))}))))
-
-(defn latest-daily [col]
-  (->> col
-       (sort-by table-keys)
-       (group-by table-keys)
-       (reduce-kv
-        (fn [m k v]
-          (assoc m k (last v))) {})
-       vals
-       flatten))
 
 (defn unify-country-name [c]
   (get {"UK" "United Kingdom"
