@@ -13,7 +13,7 @@
                  [cheshire "5.11.0"]
                  [scicloj/tablecloth "6.103.1"]
                  [org.clj-commons/digest "1.4.100"]
-                 [com.xtdb/xtdb-http-client "1.23.3"]
+                 [com.xtdb/xtdb-http-client "1.24.0"]
                  [com.fzakaria/slf4j-timbre "0.4.0"]]
   :main covid-warehouse.core
   :target-path "target/%s"
